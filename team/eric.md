@@ -1,0 +1,1 @@
+Hi! I'm Eric, a freshman studying CS at Purdue University. I'm interested in cybersecurity, embedded systems, and ML/AI. I'm a diehard fan of the Resident Evil Game series. I'm currently working on the ML aspect of the project, which includes autonomous attitude control, object avoidance, and more!
