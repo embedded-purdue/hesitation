@@ -58,3 +58,7 @@ The project follows a modular structure under the `src/` directory with strict s
 ### Subsystem Communication & Boundaries
 * **Strict Encapsulation:** Regular classes within `gui/`, `physics/`, or `hardware/` are strictly isolated and must **never** communicate directly with other modules.
 * **Message-Passing Architecture:** All inter-module communication is explicitly planned, documented, and handled exclusively by each module's main entry class using **Protocol Buffers (Protobuf)** messages.
+
+### Adding GUI Tabs
+* **Creating the tab:** Tab files should be created in `gui/tabs/`. Use `example_tab.h` as the template, replacing "example_tab" with the name of the new tab. All tab code should go in `OnRender()`.
+* **Tab registration:** Tab registration is almost entirely automated. You only need to import your tab in `tab_list.h`, and assuming your `REGISTER_TAB` is correct, it will be added to the menu bar.

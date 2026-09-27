@@ -1,43 +1,105 @@
 #include "gui.h"
 
 #include <GLFW/glfw3.h>
+#include <map>
+#include <sstream>
+#include <fstream>
+#include <iostream>
+
+#include <random>
+#include <sstream>
+#include <iomanip>
+#include <filesystem>
+#include <nfd.h>
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+#include "tabs/tab_list.h"
+#include "tab_registry.h"
+
+namespace fs = std::filesystem;
+
 namespace {
-constexpr const char* FONT_PATH = "assets/fonts/Roboto.ttf";
+constexpr const char* FONT_PATH   = "assets/fonts/Roboto.ttf";
+constexpr const char* LAYOUTS_DIR = "layouts";
+
+// Ensure the layout directory exists
+void EnsureLayoutsDirectoryExists() {
+    if (!fs::exists(LAYOUTS_DIR)) {
+        fs::create_directories(LAYOUTS_DIR);
+    }
 }
+} // namespace
+
+void GUI::SaveLayoutDialog() {
+    EnsureLayoutsDirectoryExists();
+
+    nfdchar_t* savePath           = nullptr;
+    nfdfilteritem_t filterItem[1] = {{"Layout Files", "json"}};
+
+    // Set default directory to the layouts folder
+    std::string defaultPath = fs::absolute(LAYOUTS_DIR).string();
+
+    nfdresult_t result =
+        NFD_SaveDialog(&savePath, filterItem, 1, defaultPath.c_str(), "my_layout.json");
+    if (result == NFD_OKAY) {
+        SaveStateToFile(savePath);
+        NFD_FreePath(savePath);
+    }
+}
+
+void GUI::LoadLayoutDialog() {
+    EnsureLayoutsDirectoryExists();
+
+    nfdchar_t* openPath           = nullptr;
+    nfdfilteritem_t filterItem[1] = {{"Layout Files", "json"}};
+
+    std::string defaultPath = fs::absolute(LAYOUTS_DIR).string();
+
+    nfdresult_t result = NFD_OpenDialog(&openPath, filterItem, 1, defaultPath.c_str());
+    if (result == NFD_OKAY) {
+        // Clear existing tabs before loading a custom layout
+        m_tabs.clear();
+        LoadStateFromFile(openPath);
+        NFD_FreePath(openPath);
+    }
+}
+
+struct MenuNode {
+    std::map<std::string, MenuNode> submenus;
+    std::vector<const TabInfo*> items;
+};
 
 void GUI::Render() {
     // Start a new ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
-
     ImGui::NewFrame();
 
-    // Application UI
-    ImGui::Begin("Main Menu");
+    // Enable the dockspace
+    ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
-    ImGui::Text("Hello from the GUI!");
+    // Render top menu bar
+    RenderMainMenuBar();
 
-    static float slider_val = 0.5f;
+    // Render registered tab objects and remove closed ones
+    for (auto it = m_tabs.begin(); it != m_tabs.end();) {
+        (*it)->Render();
 
-    ImGui::SliderFloat("Value", &slider_val, 0.0f, 1.0f);
-
-    if (ImGui::Button("Click Me")) {
-        // Handle button action
+        if (!(*it)->IsOpen()) {
+            it = m_tabs.erase(it);
+        } else {
+            ++it;
+        }
     }
-
-    ImGui::End();
 
     // Finalize ImGui draw data
     ImGui::Render();
 
     int width  = 0;
     int height = 0;
-
     glfwGetFramebufferSize(m_window, &width, &height);
 
     // Skip rendering if there is no framebuffer (ex: minimized)
@@ -70,9 +132,10 @@ bool GUI::Initialize(GLFWwindow* window) {
 
     ImGui::CreateContext();
 
-    ImGuiIO& io = ImGui::GetIO();
-
+    ImGuiIO& io    = ImGui::GetIO();
+    io.IniFilename = "imgui.ini";
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     ImGui::StyleColorsDark();
 
@@ -100,10 +163,14 @@ bool GUI::Initialize(GLFWwindow* window) {
         return false;
     }
 
+    LoadStateFromFile("layout.json");
+
     return true;
 }
 
 void GUI::Shutdown() {
+    SaveStateToFile("layout.json");
+
     // Shut down ImGui backends before destroying the context
     if (ImGui::GetCurrentContext()) {
         ImGui_ImplOpenGL3_Shutdown();
@@ -113,6 +180,140 @@ void GUI::Shutdown() {
     }
 
     m_window = nullptr;
+}
+
+// Helper function to split category paths like "Tools/Debug/Console" by '/'
+std::vector<std::string> SplitPath(const std::string& path, char delimiter = '/') {
+    std::vector<std::string> tokens;
+    std::string token;
+    std::istringstream tokenStream(path);
+    while (std::getline(tokenStream, token, delimiter)) {
+        if (!token.empty()) {
+            tokens.push_back(token);
+        }
+    }
+    return tokens;
+}
+
+// ID Generator
+static std::string GetRandomId() {
+    static std::random_device rd;
+    static std::mt19937_64 gen(rd());
+    static std::uniform_int_distribution<uint64_t> dis;
+
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0') << std::setw(16) << dis(gen);
+    return ss.str();
+}
+
+// Recursive function to draw ImGui menus
+void RenderSubmenuTree(const MenuNode& node, std::vector<std::unique_ptr<ITab>>& activeTabs) {
+    for (const auto* info : node.items) {
+        std::string label = "Open " + info->displayName;
+        if (ImGui::MenuItem(label.c_str())) {
+            activeTabs.push_back(info->factory(GetRandomId()));
+        }
+    }
+
+    for (const auto& [categoryName, childNode] : node.submenus) {
+        if (ImGui::BeginMenu(categoryName.c_str())) {
+            RenderSubmenuTree(childNode, activeTabs);
+            ImGui::EndMenu();
+        }
+    }
+}
+
+void GUI::RenderMainMenuBar() {
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("Load Layout...")) {
+                LoadLayoutDialog();
+            }
+            if (ImGui::MenuItem("Save Layout As...")) {
+                SaveLayoutDialog();
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Exit")) {
+                glfwSetWindowShouldClose(m_window, true);
+            }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Windows")) {
+            // Build hierarchy from registered tabs
+            MenuNode root;
+            const auto& registry = TabRegistry::Instance().GetRegisteredTabs();
+
+            for (const auto& info : registry) {
+                std::vector<std::string> path = SplitPath(info.category);
+                MenuNode* current             = &root;
+
+                for (const auto& folder : path) {
+                    current = &current->submenus[folder];
+                }
+                current->items.push_back(&info);
+            }
+
+            // Render the menu hierarchy
+            RenderSubmenuTree(root, m_tabs);
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+}
+
+void GUI::SaveStateToFile(const std::string& filepath) const {
+    std::ofstream file(filepath);
+    if (!file.is_open())
+        return;
+
+    file << "{\n  \"open_tabs\": [\n";
+    for (size_t i = 0; i < m_tabs.size(); ++i) {
+        file << "    { \"title\": \"" << m_tabs[i]->GetTitle() << "\", \"instance_id\": \""
+             << m_tabs[i]->GetInstanceId() << "\" }";
+        if (i + 1 < m_tabs.size())
+            file << ",";
+        file << "\n";
+    }
+    file << "  ]\n}\n";
+}
+
+void GUI::LoadStateFromFile(const std::string& filepath) {
+    std::ifstream file(filepath);
+    if (!file.is_open())
+        return;
+
+    std::string line;
+    const auto& registry = TabRegistry::Instance();
+
+    while (std::getline(file, line)) {
+        size_t titlePos = line.find("\"title\": \"");
+        size_t idPos    = line.find("\"instance_id\": \"");
+
+        if (titlePos != std::string::npos) {
+            size_t titleStart = titlePos + 10;
+            size_t titleEnd   = line.find("\"", titleStart);
+            std::string title = line.substr(titleStart, titleEnd - titleStart);
+
+            std::string instanceId = "0";
+            if (idPos != std::string::npos) {
+                size_t idStart = idPos + 16;
+                size_t idEnd   = line.find("\"", idStart);
+                instanceId     = line.substr(idStart, idEnd - idStart);
+            }
+
+            for (const auto& info : registry.GetRegisteredTabs()) {
+                if (info.displayName == title || info.id == title) {
+                    m_tabs.push_back(info.factory(instanceId));
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void GUI::ApplyStyle(float scale) {
@@ -233,6 +434,27 @@ void GUI::ApplyStyle(float scale) {
     c[ImGuiCol_ResizeGripHovered] = ImVec4(0.16f, 0.58f, 0.73f, 0.65f);
 
     c[ImGuiCol_ResizeGripActive] = ImVec4(0.20f, 0.70f, 0.86f, 0.90f);
+
+    // Menu Bar
+    c[ImGuiCol_MenuBarBg] = ImVec4(0.055f, 0.065f, 0.078f, 1.00f);
+
+    // Empty DockSpace Background
+    c[ImGuiCol_DockingEmptyBg] = ImVec4(0.040f, 0.048f, 0.058f, 1.00f);
+
+    c[ImGuiCol_DockingPreview] = ImVec4(0.200f, 0.720f, 0.920f, 0.35f);
+
+    // Tabs & Tab Headers
+    c[ImGuiCol_Tab] = ImVec4(0.065f, 0.080f, 0.095f, 1.00f);
+
+    c[ImGuiCol_TabHovered] = ImVec4(0.120f, 0.220f, 0.280f, 1.00f);
+
+    c[ImGuiCol_TabActive] = ImVec4(0.095f, 0.125f, 0.150f, 1.00f);
+
+    c[ImGuiCol_TabUnfocused] = ImVec4(0.050f, 0.060f, 0.072f, 1.00f);
+
+    c[ImGuiCol_TabUnfocusedActive] = ImVec4(0.075f, 0.095f, 0.115f, 1.00f);
+
+    c[ImGuiCol_TabSelectedOverline] = ImVec4(0.200f, 0.720f, 0.920f, 1.00f);
 
     style.ScaleAllSizes(scale);
 }

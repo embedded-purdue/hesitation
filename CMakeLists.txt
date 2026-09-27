@@ -36,14 +36,14 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glfw)
 
 # ------------------------------------------------------------------------------
-# Dear ImGui
+# Dear ImGui (with docking)
 # ------------------------------------------------------------------------------
 
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG v1.92.9b
-    GIT_SHALLOW TRUE
+    GIT_TAG        v1.91.8-docking
+    GIT_SHALLOW    TRUE
 )
 
 FetchContent_MakeAvailable(imgui)
@@ -76,6 +76,19 @@ target_link_libraries(imgui_lib
 
 find_package(OpenGL REQUIRED)
 
+# ------------------------------------------------------------------------------
+# Native File Dialog Extended (nfd)
+# ------------------------------------------------------------------------------
+
+FetchContent_Declare(
+    nfd
+    GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
+    GIT_TAG        v1.2.1
+    GIT_SHALLOW    TRUE
+)
+
+FetchContent_MakeAvailable(nfd)
+
 # ==============================================================================
 # APPLICATION
 # ==============================================================================
@@ -98,6 +111,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         imgui_lib
         OpenGL::GL
+        nfd
 )
 
 # ==============================================================================
