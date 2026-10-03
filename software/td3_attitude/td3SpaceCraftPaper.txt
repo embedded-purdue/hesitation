@@ -1,0 +1,241 @@
+AAS 20-475
+ADAPTIVE CONTINUOUS CONTROL OF SPACECRAFT ATTITUDE USING DEEP REINFORCEMENT LEARNING
+Jacob G. Elkins (Univ. of Alabama), Rohan Sood (Univ. of Alabama), Clemens Rumpf (NASA Ames / STC)
+
+NOTE: Plain-text conversion of the paper. Equations are LaTeX. Figures are described in brackets. The reference list is omitted (citation numbers are kept inline).
+
+==================================================
+ABSTRACT
+==================================================
+As modern and future space missions plan to explore diverse bodies across deep space, the ability to conduct successful spacecraft operations under uncertainty becomes increasingly apparent. A highly accurate and precise spacecraft attitude controller that is robust to the perturbation forces encountered in an uncertain dynamics environment is critical to the ongoing success of spaceflight in deep space. In this work, we present a framework for deriving an adaptive spacecraft attitude controller using deep reinforcement learning. The controller developed is shown to effectively perform large-angle slew maneuvers at industry-standard pointing accuracies. We find that the controller is capable of adapting in the presence of various disturbance torques unseen during training and is system-agnostic of the spacecraft being controlled, even when trained on one spacecraft configuration. Additionally, this study discusses the application specifics that yielded the reported results and discusses possible routes of expansion for future work.
+
+==================================================
+INTRODUCTION
+==================================================
+As the number of spacecraft launched and operated continues to grow, spacecraft must become increasingly autonomous. This autonomy includes minimizing ground transmission of data and human intervention in spacecraft operations. Spacecraft are also being sent on missions where communication times to Earth can be longer than the time allowed for solving a problem or making a decision, meaning the spacecraft must act on on-board processing of data and highly capable controllers and decision-making systems.
+
+Moreover, spacecraft are being sent to increasingly complex dynamical environments, such as NASA's Juno mission to Jupiter and OSIRIS-REx mission to asteroid Bennu [1, 2]. An asteroid such as Bennu presents a weak and complex gravity field, where accurate navigation and orientation are critical for mission success. Juno presents a large multibody gravity field, where Jupiter's many moons create a complex dynamical environment. In both cases, imperfect knowledge of the spacecraft's state must be used in concert with complex navigation techniques [3]. For OSIRIS-REx, the Bennu gravity field was estimated from limited observation data pre-launch, with gravity field approximations updated using OSIRIS-REx tracking and sensing data [4]. These missions serve as exemplars of modern and future space endeavors that require an attitude control system that can adapt and even tune itself over time to localized gravity fields in an evolving dynamical environment.
+
+As more highly capable computing power is made lighter, smaller, and more radiation-resistant, increasingly advanced software can now be launched on relatively small satellite systems [5, 6]. These advancements have made many software developments newly feasible for on-board deployment, such as the recent acceleration in AI/ML. NASA has identified numerous AI research areas as enabling technologies needed for future missions in the 2020 NASA Technology Taxonomy [7]. Examples include intelligent robots/digital assistants, software, and on-board algorithms for data processing. There is much work to be done in the practical application of modern AI research to the aerospace domain.
+
+Reinforcement learning (RL), a paradigm of machine learning, involves an agent learning to act optimally in a changing environment by iterative training to maximize the reward received from taking actions in respective states. RL has been shown to achieve better-than-human performance at a variety of complex tasks and games [8]. While RL applications to spacecraft control have been few and sparse, preliminary results are promising [9-11]. Gaudet et al. propose RL as a framework for an integrated guidance and control system, and report an increase in landing precision and robustness to noise and uncertainty in a Mars descent and landing simulation [12]. RL has also been shown to produce controllers that can land and hover spacecraft in irregular or unknown gravity fields [13, 14]. However, limited work has been done to study and extensively simulate spacecraft attitude control using RL. Related concurrent work includes using Proximal Policy Optimization (PPO) to train an attitude controller that outperforms a quaternion rate feedback controller, and using a Deep Q Network and discrete control to stabilize attitude after some momentum-changing event such as a payload decoupling [15, 16]. Other similar work includes using a neural network as a predictive attitude controller trained on generated optimal control datasets, and using a variant of dynamic programming for adaptive attitude control [17, 18].
+
+With both commercial and governmental interest growing in spacecraft autonomy, it is essential to explore the practical application of RL to autonomous attitude control [19-21]. RL algorithms have typically been developed to determine optimal actions in control processes formalized as Markov decision processes (MDPs). MDPs operate in dynamics which are discrete in time, allowing states and their transitions to be described mathematically. At each discrete timestep, the controller (agent) takes actions and receives a reward based on the value of the action, which lets the MDP formalism transfer well to RL. In this work, the task of orienting a spacecraft to a desired attitude using continuous control of torques about each of the principal body-frame axes is considered. Attitude sensor models, such as star trackers or inertial guidance units, were not used for the attitude representation. We introduce and explore the simulation techniques and RL implementation used to achieve industry-standard pointing accuracy in large-angle slew maneuvers, and demonstrate the derived controller's ability to overcome disturbance events not seen during training, such as spacecraft tumbling, impulsive disturbance torques, continuous disturbance torques, and different values of rotational inertia.
+
+==================================================
+METHODS
+==================================================
+
+--- Reinforcement Learning Formalism ---
+
+RL is generally defined as optimizing a policy \pi(a_t | s_t), a function mapping from states s_t to actions a_t, by iteratively interacting with the environment to maximize reward r_t. This requires each state and action to be discretized in time, and each action for a given state has an associated reward. The RL agent samples actions in the action space to maximize the reward returned from the environment.
+
+Since the policy and value functions are not known prior to training, value-based, model-free RL algorithms use artificial neural networks (ANNs) to approximate the policy and value functions. Neural networks are multi-layered data processing systems. Each layer contains many interconnected "neurons." Each neuron contains parameters (a weight and bias) that are collectively optimized to approximate a function, a mapping between an input and a respective output [22].
+
+[Figure 1: Example neural network. Input layer of 8 neurons, two fully-connected hidden layers (HL 1 and HL 2) of 8 and 4 neurons, and a single output.]
+
+Today's RL algorithms, based on how experience is generated by the agent, can be roughly divided into two taxa: on-policy and off-policy. On-policy methods train the agent (update the networks) only using experience generated by the current network parameters, while off-policy RL uses any experience, often generated by previous iterations of the agent. Almost all on-policy algorithms follow some form of the actor-critic architecture, where separate networks are trained to estimate both the policy and a state-value function [23-25]. Almost all off-policy algorithms use Q-learning, a state-action value function estimating the sum of future discounted rewards if the current policy is followed to the end of some time horizon.
+
+Twin Delayed Deep Deterministic Policy Gradient (TD3), the algorithm used in this study, is a state-of-the-art off-policy, Q-based method that combines elements of the actor-critic framework by maintaining separate actor and critic networks [26]. We use it for its sample efficiency (fewer environment interactions to reach desired performance) and its demonstrated better performance on the OpenAI gym MuJoCo continuous control tasks than other popular methods such as PPO.
+
+TD3 builds on known problems of Deep Deterministic Policy Gradient (DDPG) [27]. DDPG combines Q-Learning and policy gradient by adapting Q-Learning to a continuous action space. Q-Learning is a value-based method of learning the discounted rewards-to-go of states, while the popular Deep Q Network (DQN) algorithms are only applicable to discrete action spaces [8, 28]. Policy gradient algorithms are formulated for continuous action spaces, where the policy is optimized in the direction (gradient) of maximum reward [29]. DDPG learns both the policy and an action-value function.
+
+The return from the current state at time t, with time horizon T and discount factor \gamma \in (0, 1]:
+
+(1)  R_t(s_t) = \sum_{k=0}^{T} \gamma^{k} r_{t+k}
+
+(The original PDF typesets the exponent as \gamma^t; the standard form is \gamma^k.)
+
+The action-value function is the return expected if the agent takes action a_t in state s_t and follows the current policy afterward:
+
+(2)  Q^{\pi}(s_t, a_t) = \hat{\mathbb{E}}\left[ R_t \mid s_t, a_t \right]
+
+With current network parameters \theta, deterministic policy gradient algorithms take the gradient of the expected return at t = 0, J(\theta) = \hat{\mathbb{E}}[R_0]:
+
+(3)  \nabla_\theta J(\theta) = \hat{\mathbb{E}}\left[ \nabla_{a_t} Q^{\pi}(s_t, a_t) \, \nabla_\theta \pi_\theta(s) \right]
+
+where a_t = \pi(s_t). Equation 3 largely summarizes the goal of RL: find the policy parameters that maximize expected returns. DDPG combines Q-Learning and policy gradient into an actor-critic style algorithm, with one function approximator learning the action-value function and another learning the policy. The action-value function in Q-Learning is learned with temporal difference learning, which originates from the Bellman equation of dynamic programming, where the agent learns the relationship between the value of the current state-action pair (s_t, a_t) and the next one [30-32]:
+
+(4)  Q^{\pi}(s_t, a_t) = r_t + \gamma \, \hat{\mathbb{E}}\left[ Q^{\pi}(s_{t+1}, a_{t+1}) \right]
+
+Since the action-value functions are not known beforehand, they are approximated with deep neural networks. DDPG also uses secondary "target" networks for both the policy and action-value functions, denoted \pi_{\theta'} and Q_{\psi'}(s_t, a_t). These target networks are stationary over some timesteps during learning, acting as a sort of moving average to stabilize training with a fixed objective [8]:
+
+(5)  y = r_t + \gamma \, Q_{\psi'}(s_{t+1}, a_{t+1})
+
+The actions in this update are selected from the target policy network, a_{t+1} = \pi_{\theta'}(s_{t+1}). As the agent interacts with the environment, experience is stored in a replay buffer in the form of "transition tuples" (s_t, a_t, r_t, s_{t+1}), which are sampled in minibatches to update the parameters of the current policy and action-value networks. Periodically during training, the target policy and target action-value network parameters are slowly updated toward the current networks using a proportion constant \tau:
+
+(6)  \psi' \leftarrow \tau \psi + (1 - \tau) \psi'
+
+[Figure 2: Agent interaction diagram for off-policy actor-critic RL such as TD3. Learner (optimize policy, state-action functions) sends current network parameters to Environment (take actions based on exploration policy). Environment sends experience to Replay Buffer (stores experience). Replay Buffer sends experience minibatches to Learner.]
+
+TD3 corrects a major shortcoming of DDPG: overestimation bias of the state-action value, which accumulates error in the value estimate. It does this with three main differences from DDPG:
+ 1. Twin critics: two function approximations of the state-action value; the minimum of the two predicted values is used at each timestep to reduce overestimation.
+ 2. Delayed policy updates: the policy is updated less frequently than the value functions. Together with the Equation 6 soft update, this makes policy updates use a lower-variance value estimate, giving more stable policy learning.
+ 3. Target policy smoothing: during each update step, noise (clipped at some value) is added to each dimension of the target actions, which restricts the value function's tendency to exploit sharp peaks in the learned value function.
+
+We use off-policy learning because: (1) experience replay (storing and retraining on past interactions) increases data efficiency [33]; (2) off-policy exploration is mostly noise added to policy actions, which is easily controlled; (3) recent advances in distributed off-policy RL show promise and are planned for future extensions [34, 35].
+
+--- Simulating the Spacecraft Attitude Control Problem ---
+
+A high-fidelity simulation environment is required for practical RL. Collecting enough real data to model the dynamics and anomalies a real system would experience is expensive and labor-intensive. For complex tasks, the agent may need millions of iterations. Given the cost of satellite launch and operation, simulation (faster-than-real-time propagation) is practical. However, since the simulation approximates real-world dynamics, agents may succeed in simulation but fail on the real system [36]. The simulation must have enough fidelity for a seamless transition to the real system. Training in simulation for transfer to the real world is called the "sim-to-real" loop [36-38]. Research shows randomized environment dynamics yield agents that generalize better and transfer better.
+
+The simulation environment was built in the OpenAI gym format [39]. A Lockheed Martin LM50 satellite bus was modeled (Figure 3), allowing comparison against publicly available pointing accuracy specifications, used to formulate success criteria and reward functions.
+
+[Figure 3: LM50 spacecraft model with body-fixed principal axes labeled (x, y, z). Two long solar-panel wings along y, small central bus.]
+
+The LM50 is modeled as symmetric about the body-fixed principal axes (all products of inertia equal to zero):
+
+(7)  I = \mathrm{diag}(I_1, I_2, I_3) = \mathrm{diag}(0.872, \; 0.115, \; 0.797) \; \mathrm{kg\,m^2}
+
+The attitude control problem is simulated by integrating Euler's rotational equations of motion for a rigid body:
+
+(8)  \vec{M} = I \dot{\vec{\omega}} + \omega^{\times} I \vec{\omega}
+
+with the skew-symmetric cross-product matrix
+
+(9)  \omega^{\times} = \begin{bmatrix} 0 & -\omega_3 & \omega_2 \\ \omega_3 & 0 & -\omega_1 \\ -\omega_2 & \omega_1 & 0 \end{bmatrix}
+
+I is the rotational inertia tensor about the spacecraft center of mass, \vec{M} is the external moment (torque) vector, and \vec{\omega} is the angular velocity about the body-fixed principal axes [40]. Subscripts 1, 2, 3 denote the body-fixed principal axes x, y, z.
+
+Attitude is represented with Euler parameters (unit quaternions). The error quaternion (relating the current body frame to the desired frame) is used to increase generalizability. It is propagated by integrating the quaternion kinematics:
+
+(10) q_e = \begin{bmatrix} \hat{e} \sin(\phi/2) \\ \cos(\phi/2) \end{bmatrix} = \begin{bmatrix} \vec{q} \\ q_s \end{bmatrix}
+
+(11) \dot{q}_e = \tfrac{1}{2} \, \Omega(\vec{\omega}) \, q_e
+
+where the augmented skew-symmetric matrix is the 4x4 block matrix
+
+(12) \Omega(\vec{\omega}) = \begin{bmatrix} -\omega^{\times} & \vec{\omega} \\ -\vec{\omega}^{T} & 0 \end{bmatrix}
+
+and \phi is the rotation angle about unit rotation axis \hat{e} from the current body frame to the desired frame (Figure 4).
+
+[Figure 4: Relation of spacecraft body-fixed frame (subscript B) to a desired reference frame (subscript des), about rotation axis \hat{e} and angle \phi.]
+
+Equations (8) and (11) are jointly integrated at each simulation timestep with a given torque vector \vec{M} to find body-frame angular velocity \vec{\omega} and attitude error quaternion q_e using fourth-order Runge-Kutta [43, 44]. After each integration, roundoff error is handled by normalizing the error quaternion: q_e = q_e / ||q_e|| [42, 44].
+
+--- Problem Framework ---
+
+The MDP (or POMDP in the partially-observable case) is the decision-making model used to quantify RL. Central to MDPs is the discrete timestep, which requires careful conversion of a continuous-time real-world problem to a discrete-time "episode" format. This requires careful definition of the task, the state vector, and the reward function.
+
+Here, the attitude control problem is a large-angle slew maneuver followed by maintaining the desired orientation. A large-angle slew is a goal orientation at an angle \phi \in [30 deg, 150 deg] about any rotation axis \hat{e} from the initial orientation. At the start of each episode, an initial error quaternion q_e is selected from SO(3) with \phi \in [30 deg, 150 deg]. A random unit vector in spherical coordinates is sampled uniformly and converted to Cartesian coordinates; \phi is sampled uniformly from the range above. This axis-angle pair is converted to q_e using Equation (10).
+
+In each training episode, the spacecraft starts at rest (\vec{\omega}^T = [0, 0, 0] rad/s) in a zero-gravity environment. Modeling perturbation torques (atmospheric drag, solar radiation pressure, gravity gradient, geomagnetic field for an Earth orbiter) during training would likely shrink the sim-to-real gap. Since the aim is to show the trained agents overcome unseen perturbations, the ideal zero-perturbation case is used in training.
+
+At each timestep, the agent selects the control moment vector about the body-fixed principal axes. Each component is limited to a maximum magnitude of 0.5 Nm, chosen to be within typical reaction wheel torque limits for this spacecraft size. Similar to Atari-playing RL, a variant of "frame skipping" is used [45]: the agent selects an action (torque), the angular impulse is applied over the next timestep, then dynamics are propagated for the following 20 timesteps with zero external torque (free rotation). This frameskip gave a reasonable combination of control fidelity and training time. The integration step is dt = 1/240 s, similar to industry-standard physics engines [46].
+
+The state vector, the input to all actor and critic networks in training and acting, is
+
+(13) s_t = \{ q_e, \; \dot{q}_e, \; \vec{\omega} \}
+
+The optimal state is \dot{q}_e = \vec{\omega} = \vec{0} and q_e = [0, 0, 0, 1]. The state vector should describe the problem as simply as possible while keeping it relative, removing arbitrariness such as an inertial coordinate frame. This is why the error quaternion is used: it is a normalized representation of current attitude relative to the desired attitude.
+
+Two episode termination criteria:
+ 1. Timestep criterion: terminate after the agent selects 500 actions = 10,000 timesteps with frameskipping = 43 min 45 s of real time. Long enough for exploration, short enough to keep training time low.
+ 2. Performance criterion: terminate if ||\vec{\omega}|| exceeds 0.5 rad/s. Combined with a penalty (below), the agent learns to avoid this.
+
+Implementation: Python, with neural networks, ADAM optimizer, and learning rate annealing in PyTorch [47]. Simulation integration and other calculations accelerated with Numba (JIT) [48]. Network calculations and updates after each training epoch run in parallel on a GPU. Hardware: AMD Ryzen 7 1700X 8-core CPU at 3.40 GHz, NVIDIA GeForce RTX 2070 Super GPU.
+
+--- Agent Training ---
+
+Deep feedforward neural networks were used (any function approximator can likely be used). Architectures and activations are in Table 3 and hyperparameters in Table 4 (Appendix). Layer counts and widths for actor and critic match the original TD3 authors [26]. ReLU is used for computational efficiency and faster convergence [50, 51].
+
+The reward function is the most influential part of the RL formulation. To avoid heavy reward engineering, it is kept as simple as the problem allows. The agent has evolving goals: first, slew to within the desired error tolerance; second, stabilize and remain within tolerance for an extended period. Two reward functions are used. The first is used from the start of the episode until q_s >= 0.999962 (corresponding to angular error \phi = 0.25 deg, the LM50 angular error tolerance):
+
+(14) r_t = \begin{cases} 0.1 & q_{s,t} > q_{s,t-1} \\ -0.1 & \text{otherwise} \end{cases}
+
+q_{s,t} is the scalar part of the error quaternion at the current timestep and q_{s,t-1} at the previous one. The agent gets a positive reward if it got closer to the goal over the previous timestep, otherwise a penalty. The values were chosen an order of magnitude below Equation (15), and binary for simplicity. A possible extension is continuous values, such as the amount of decrease in angular error.
+
+On reaching q_s >= 0.999962, the reward switches to Equation (15) for the rest of the episode:
+
+(15) r_t = \alpha \cdot q_e = \begin{bmatrix} -1 \\ -1 \\ -1 \\ 1 \end{bmatrix} \cdot \begin{bmatrix} q_1^2 \\ q_2^2 \\ q_3^2 \\ q_s^2 \end{bmatrix}
+
+(dot product; \alpha is a weight vector that gives slightly more numerical fidelity in the error quaternion.) No penalties are applied for efficiency (e.g. torque magnitude), so the agent is incentivized to reach the goal as quickly as possible (an approximation to time-optimality). This reward is maximized when \phi is minimized; at the optimal state r_t = 1. That magnitude of 1, compared to 0.1 in Eq. (14), incentivizes getting within the error bounds. The relative terms in Eq. (15) incentivize decreasing attitude error as much as possible each timestep. Additionally:
+ - Terminal reward of +10 if the terminal state satisfies q_s >= 0.999962, else 0.
+ - Reward of -25 if the agent terminates the episode early (||\vec{\omega}|| > 0.5 rad/s).
+
+==================================================
+TRAINING RESULTS
+==================================================
+The initial agent (agent 1) was trained on 10,000 episodes. On the hardware above, that took 1 day, 15 hours, 24 minutes. Training curves are in Figure 5. Agent 1 statistics (Table 1) are computed over 5,000 simulated episodes of 500 timesteps (43.75 s). "Closest state" = state where error angle \phi is minimum in the episode. "Terminal state" = state at the end of the episode.
+
+[Figure 5: Training curves averaged over three seeds; shaded region = half a standard deviation. Left: episode reward rises from ~0 to ~300+ over 10,000 episodes. Right: closest approach angle (deg) falls from ~65 to ~2. Computed by running the agent with zero exploration noise for 10 evaluation episodes after every 10 training episodes. Curves smoothed.]
+
+Table 1. Agent 1 statistics for 5,000 simulated episodes.
+              Closest State                Terminal State
+            phi (deg)  ||w|| (rad/s)    phi (deg)  ||w|| (rad/s)
+Mean         0.1301     0.0081           0.1902     0.0083
+Std. dev.    0.0130     0.0004           0.0332     0.0000
+Min          0.0822     0.0063           0.1254     0.0078
+Q1           0.1231     0.0079           0.1571     0.0083
+Q2           0.1373     0.0081           0.1593     0.0083
+Q3           0.1377     0.0081           0.2235     0.0083
+Max          0.1571     0.0103           0.2334     0.0084
+
+The agent maneuvers to and maintains angular error \phi < 0.25 deg, the LM50 pointing accuracy. The max angular error in both closest and terminal states is within the desired accuracy. These statistics were computed with no perturbation torques.
+
+Three slew maneuvers (Table 2) were run with no perturbations. Each is 100 deg about an axis with equal-magnitude components, with the axis in a different octant per test. Figure 6 shows orientation, angular error, and control histories.
+
+Table 2. Slew maneuvers selected as control examples.
+Test  Axis of Rotation               Angle (deg)  Quaternion
+1     [0.57735, 0.57735, 0.57735]    100          [0.44228, 0.44228, 0.44228, 0.64279]
+2     [0.57735, -0.57735, 0.57735]   100          [0.44228, -0.44228, 0.44228, 0.64279]
+3     [-0.57735, -0.57735, 0.57735]  100          [-0.44228, -0.44228, 0.44228, 0.64279]
+
+[Figure 6: Control examples for Tests 1-3, no perturbation torques. Control frequency same as training, 11.43 Hz. Panels per test: quaternion components vs time, angular error vs time (100 deg to ~0 within ~10-15 s), and angular velocity components w1, w2, w3 vs time (all settle near 0 by ~20 s).]
+
+==================================================
+RESILIENCE TO DISTURBANCE TORQUES
+==================================================
+A major contribution is analyzing a neural attitude controller, trained with this RL framework, under disturbances and initial conditions unseen during training. Four test cases:
+ 1. Spacecraft tumble (nonzero initial angular velocity)
+ 2. Single, impulsive disturbance torque
+ 3. Constant disturbance torque
+ 4. Different rotational inertia
+
+Each is a condition the agent may experience over a mission. Detumble conditions may occur after waking from an idle mode or docking with a passive spacecraft [52]. A single disturbance torque could come from an impact with another object, a faulty attitude control thruster that is quickly shut off, or SmallSat deployment from a rack. A constant disturbance torque could be an environmental disturbance such as atmospheric drag or gravity gradient. Inertia changes as fuel is depleted, as the spacecraft docks with another, or if a part is lost.
+
+In each test the agent control frequency is raised to 40 Hz (frameskip of five timesteps), to better reflect control frequency on real systems; training used a lower rate only to cut training time. At each timestep the agent selects a torque, it is applied over the next timestep, and dynamics are propagated for the following 5 timesteps with zero torque (simulation dt = 1/240 s). In Disturbance Test 1 the initial error quaternion is q_e = [0, 0, 0, 1] (starts at the desired orientation). All other disturbance tests use the initial error quaternion of Test 1 in Table 2.
+
+Disturbance Test 1 (tumble): initial angular velocity \vec{\omega}_i^T = [1.0, 2.0, 0.5] rad/s, as in Aghili (2009) [52]. Aghili presents a time-optimal detumbling case with similar max torque magnitude 0.5 Nm. Conditions are similar, differing only in torque constraint enforcement (Aghili limits the torque vector magnitude to <= 0.5 Nm; here each component is limited to <= 0.5 Nm in magnitude) and inertia tensor values. The inertia matrix is kept the same as in training to isolate the effect of tumbling. Result: the agent achieves 99.87% passivation at t = 19.34 s, which is the time-optimal complete passivation time in Aghili (2009). This suggests the agent is a near-approximation of time-optimal control, especially notable for initial conditions not seen in training.
+
+Disturbance Test 2 (impulse): starts as Test 1 in Table 2 (100 deg slew). A single disturbance torque \vec{\tau}_{dist}^T = [5.0, 2.0, 1.0] Nm is applied at t = 15 s. Chosen large enough to be challenging, with different magnitudes per axis. The agent recovers and returns to \phi <= 0.25 deg.
+
+[Figure 7: Disturbance Test 1 (detumble) and Test 2 (single impulsive torque, applied at t = 15 s). 40 Hz control. Quaternion and angular velocity histories.]
+
+Disturbance Test 3 (constant): meant to mimic a challenging constant disturbance reflective of the space environment. Because drag depends on ram area, a gravity-gradient-like disturbance was used. LEO gravity gradient disturbances are almost negligible for this spacecraft, so the magnitude was increased. The order of magnitude is consistent with gravity gradient forces experienced by Juno near perijove, an approximate upper bound of gravity-gradient disturbances [53]. The inertia difference terms are retained so the disturbance depends on spacecraft inertia as in real gravity gradient. The torque applied each timestep is
+
+(16) \vec{\tau}_{dist} = 0.05 \begin{bmatrix} I_3 - I_2 \\ I_1 - I_3 \\ I_2 - I_1 \end{bmatrix} = \begin{bmatrix} 0.0341 \\ 0.0038 \\ -0.0379 \end{bmatrix} \; \mathrm{Nm}
+
+applied in the same inertial-frame direction at each timestep, similar to gravity gradient torque. The agent achieves desirable performance under this unseen disturbance, with no updating or retraining. Notably, because of frameskipping, the state-transition tuple the agent "expects" differs from training: the disturbance torque acts in timesteps when the agent does not. The policy being robust to this is intriguing.
+
+Disturbance Test 4 (different inertia): the inertia tensor is decreased elementwise by a factor of two, to study robustness to mass changing over a mission (e.g. fuel depletion). The agent easily maintains control. Changing the inertia tensor values to alter the spacecraft's symmetry gave similar results. This suggests the learned policy is agnostic not just to the magnitude of this system's inertia tensor, but spacecraft-agnostic: the controller can feasibly perform on systems it was not trained on.
+
+[Figure 8: Disturbance Test 3 (constant disturbance torque) and Test 4 (different rotational inertia). 40 Hz control.]
+
+The "final product" of training is the learned policy \pi(a_t | s_t), which given this state and action representation is a neural network mapping quaternion, quaternion rates, and angular rates to body-fixed axis torque commands. Robustness to conditions unseen in training matters because simulation-based ML cannot account for every circumstance the system will meet in operation. Framing the state vector to produce a generalizable policy is therefore important. These tests help show the feasibility of neural attitude controllers in real-world operation. Second, a system-agnostic policy could suggest a "master" policy: one well-trained controller for all satellites in a constellation.
+
+==================================================
+CONCLUSIONS AND FUTURE WORK
+==================================================
+This work presents a feasible framework for training a neural spacecraft attitude controller with RL, investigates training techniques and reward functions that improve control accuracy, and demonstrates that these controllers can be trained on personal-computer-strength hardware. A state-of-the-art single-actor RL algorithm is applied in the developed simulation environment, where the final agent achieves industry-standard pointing accuracy in a relatively short training time. The agent's resilience to environmental disturbances is tested in four cases, each simulating a condition the agent could meet in space. The agent adapts to all of them, even approximating time-optimality. Robustness to conditions not seen in training supports the feasibility of RL-powered controllers on real satellites. Results also suggest a single "master" policy could be used across a wide range of satellites, which could increase constellation autonomy. Future work aims to use recent advances in distributed RL to study how a satellite constellation generating data may be used for tasks such as attitude control.
+
+==================================================
+APPENDIX A: HYPERPARAMETERS AND NETWORK ARCHITECTURES
+==================================================
+Table 3. Architectures and activations for actor and critic networks (same as original TD3 paper [26]).
+
+                  Actor Networks                 Critic Networks
+                  # Neurons   Activation         # Neurons   Activation
+Hidden Layer 1    400         ReLU               400         ReLU
+Hidden Layer 2    300         ReLU               300         ReLU
+Output Layer      3 (#actions) Tanh              1           Linear
+
+Table 4. TD3 hyperparameters used for training. Arrow = linear annealing over the training run.
+
+Discount (gamma)                 0.99
+Batch size                       100
+Exploration noise                0.1
+Exploration noise clip           0.5
+Policy delay                     2
+Polyak averaging proportion      0.995
+Learning rate                    3e-4 -> 1e-6

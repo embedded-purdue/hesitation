@@ -1,6 +1,6 @@
 #pragma once
-#include "Quat.hpp"
 #include "dynamics.hpp"
+#include "quat.hpp"
 #include "vec3.hpp"
 #include <cmath>
 #include <functional>
@@ -8,35 +8,67 @@
 #include <random>
 
 constexpr double DT = 1.0 / 240.0;
+
+// Paper: 1 torque timestep + 20 free-rotation timesteps = 21 timesteps total
+// (240/21 = 11.42857 Hz ~ 11.43 Hz)
 constexpr int TRAIN_FRAMESKIP = 20;
-constexpr int EVAL_FRAMESKIP = 5;
+// Paper disturbance test: 1 torque + 5 free = 6 timesteps total (240/6 = 40 Hz)
+constexpr int EVAL_FRAMESKIP = 6;
+
 constexpr int MAX_STEPS = 500;
 constexpr double OMEGA_LIMIT = 0.5;
 constexpr double TORQUE_LIMIT = 0.5;
-constexpr double GOAL_QS = 0.999962;
+
+// Goal constants: q_s = cos(phi / 2)
+// phi <= 1.00 deg: cos(0.500 deg) = 0.9999619230641713  (paper nominal text
+// constant) phi <= 0.50 deg: cos(0.250 deg) = 0.9999904807207345  (best
+// stabilizing run) phi <= 0.25 deg: cos(0.125 deg) = 0.9999976201773518  (LM50
+// pointing spec)
+constexpr double GOAL_QS_1_0_DEG = 0.9999619230641713;
+constexpr double GOAL_QS_0_5_DEG = 0.9999904807207345;
+constexpr double GOAL_QS_0_25_DEG = 0.9999976201773518;
+
+// Default goal threshold (LM50 accuracy spec of 0.25 deg)
+constexpr double GOAL_QS = GOAL_QS_0_25_DEG;
+
+inline double phi_deg_to_qs(double phi_deg) {
+  return std::cos((phi_deg * M_PI / 180.0) / 2.0);
+}
 
 struct StepResult {
   State state;
   double reward;
-  bool done;
+  bool terminated; // true if ||w|| > OMEGA_LIMIT (absorbing failure state)
+  bool truncated;  // true if t >= MAX_STEPS (time horizon limit)
   double phi;
   bool just_reached_goal;
+
+  bool done() const { return terminated || truncated; }
 };
 
 class SpacecraftAttitudeEnv {
 public:
-  // disturbance_fn(t_seconds) -> extra torque; empty means no disturbance
+  // Primary constructor with explicit goal_qs
   SpacecraftAttitudeEnv(
-      unsigned seed, int frameskip = TRAIN_FRAMESKIP,
-
+      unsigned seed, double goal_qs, int frameskip = TRAIN_FRAMESKIP,
       Vec3 inertia = Vec3(0.872, 0.115, 0.797),
-
       std::optional<std::function<Vec3(double)>> disturbance_fn = std::nullopt)
-      : rng_(seed), frameskip_(frameskip), I_(inertia),
+      : rng_(seed), goal_qs_(goal_qs), frameskip_(frameskip), I_(inertia),
         I_inv_(elementwise_inv(inertia)),
         disturbance_fn_(std::move(disturbance_fn)) {
     reset();
   }
+
+  // Convenience constructor defaulting to GOAL_QS with optional frameskip
+  SpacecraftAttitudeEnv(
+      unsigned seed, int frameskip = TRAIN_FRAMESKIP,
+      Vec3 inertia = Vec3(0.872, 0.115, 0.797),
+      std::optional<std::function<Vec3(double)>> disturbance_fn = std::nullopt)
+      : SpacecraftAttitudeEnv(seed, GOAL_QS, frameskip, inertia,
+                              std::move(disturbance_fn)) {}
+
+  void set_goal_qs(double goal_qs) { goal_qs_ = goal_qs; }
+  double goal_qs() const { return goal_qs_; }
 
   State reset(std::optional<Quat> q0 = std::nullopt,
               std::optional<Vec3> w0 = std::nullopt) {
@@ -52,7 +84,7 @@ public:
     state_.w = w0.value_or(Vec3(0, 0, 0));
     t_ = 0;
     prev_qs_ = state_.q.w;
-    past_goal_ = state_.q.w >= GOAL_QS;
+    past_goal_ = state_.q.w >= goal_qs_;
     return state_;
   }
 
@@ -71,9 +103,9 @@ public:
 
     double qs = state_.q.w;
 
-    bool just_reached_goal = (!past_goal_) && qs >= GOAL_QS;
+    bool just_reached_goal = (!past_goal_) && qs >= goal_qs_;
 
-    if (qs >= GOAL_QS)
+    if (qs >= goal_qs_)
       past_goal_ = true;
 
     double reward;
@@ -96,12 +128,12 @@ public:
     }
     bool truncated = t_ >= MAX_STEPS;
     if (truncated) {
-      reward += (qs >= GOAL_QS) ? 10.0 : 0.0;
+      reward += (qs >= goal_qs_) ? 10.0 : 0.0;
     }
 
     double phi = state_.q.angle();
-    return StepResult{state_, reward, terminated || truncated, phi,
-                      just_reached_goal};
+    return StepResult{state_,    reward, terminated,
+                      truncated, phi,    just_reached_goal};
   }
 
 private:
@@ -120,6 +152,7 @@ private:
   }
 
   std::mt19937 rng_;
+  double goal_qs_;
   int frameskip_;
   Vec3 I_, I_inv_;
   std::optional<std::function<Vec3(double)>> disturbance_fn_;

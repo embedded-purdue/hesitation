@@ -1,5 +1,5 @@
 #pragma once
-#include "Quat.hpp"
+#include "quat.hpp"
 #include "vec3.hpp"
 
 inline Vec3 elementwise_mul(const Vec3 &a, const Vec3 &b) {
