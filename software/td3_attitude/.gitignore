@@ -1,0 +1,11 @@
+# Build output and CMake artifacts
+bin/
+build/
+
+# External dependencies (PyTorch / LibTorch)
+third_party/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
