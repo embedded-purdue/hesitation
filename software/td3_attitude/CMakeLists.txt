@@ -1,3 +1,16 @@
+# ==============================================================================
+# CMakeLists.txt - TD3 Spacecraft Attitude Control Build Configuration
+#
+# Builds the C++/LibTorch executables:
+#   - bin/train : Continuous curriculum TD3 training executable
+#   - bin/eval  : Deterministic greedy policy evaluation executable
+#
+# Author: Eric Yu
+# Date: October 2026
+# Version: 1.0.0
+# Reference: Elkins et al., AAS 20-475
+# ==============================================================================
+
 cmake_minimum_required(VERSION 3.18)
 project(hesitation_td3)
 
