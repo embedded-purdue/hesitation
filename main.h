@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gui/gui.h"
+#include "app/src/gui/gui.h"
 
 class GLFWwindow;
 

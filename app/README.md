@@ -46,7 +46,7 @@ The project follows a modular structure under the `src/` directory with strict s
 | **`src/gui/`** | UI components, Dear ImGui rendering, and user input handling. |
 | **`src/physics/`** | Orbital simulation engine, timing/scheduling, and reactor/engine/thermo simulations. |
 | **`src/hardware/`** | Hardware abstraction, serial protocols, and physical device interfaces. |
-| **`src/main.h`** | Central process manager strictly responsible for owning and managing subsystem lifecycles. |
+| **`../main.h`** (repository root) | Central process manager strictly responsible for owning and managing subsystem lifecycles. |
 
 ### Subsystem Communication & Boundaries
 * **Strict Encapsulation:** Regular classes within `gui/`, `physics/`, or `hardware/` are strictly isolated and must **never** communicate directly with other modules.
