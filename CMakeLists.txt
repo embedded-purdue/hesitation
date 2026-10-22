@@ -70,6 +70,34 @@ target_link_libraries(imgui_lib
         glfw
 )
 
+# ------------------------------------------------------------------------------
+# ImPlot
+# ------------------------------------------------------------------------------
+
+FetchContent_Declare(
+    implot
+    GIT_REPOSITORY https://github.com/epezent/implot.git
+    GIT_TAG        v0.16
+    GIT_SHALLOW    TRUE
+)
+
+FetchContent_MakeAvailable(implot)
+
+add_library(implot_lib STATIC
+    ${implot_SOURCE_DIR}/implot.cpp
+    ${implot_SOURCE_DIR}/implot_items.cpp
+)
+
+target_include_directories(implot_lib
+    PUBLIC
+        ${implot_SOURCE_DIR}
+)
+
+target_link_libraries(implot_lib
+    PUBLIC
+        imgui_lib
+)
+
 # ==============================================================================
 # SYSTEM DEPENDENCIES
 # ==============================================================================
@@ -94,25 +122,26 @@ FetchContent_MakeAvailable(nfd)
 # ==============================================================================
 
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/src/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/src/*.h"
 )
 
 add_executable(${PROJECT_NAME}
-    "${CMAKE_CURRENT_SOURCE_DIR}/../main.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../main.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/main.h"
     ${PROJECT_SOURCES}
 )
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/.."
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        "${CMAKE_CURRENT_SOURCE_DIR}/"
+        ${CMAKE_CURRENT_SOURCE_DIR}/app/src
 )
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         imgui_lib
+        implot_lib
         OpenGL::GL
         nfd
 )
@@ -145,8 +174,8 @@ add_custom_command(
     POST_BUILD
 
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_CURRENT_SOURCE_DIR}/assets"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
+            "${CMAKE_CURRENT_SOURCE_DIR}/app/assets"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/app/assets"
 
     COMMENT "Copying assets..."
 )
