@@ -131,6 +131,7 @@ bool GUI::Initialize(GLFWwindow* window) {
     IMGUI_CHECKVERSION();
 
     ImGui::CreateContext();
+    ImPlot::CreateContext();
 
     ImGuiIO& io    = ImGui::GetIO();
     io.IniFilename = "imgui.ini";
@@ -176,6 +177,7 @@ void GUI::Shutdown() {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
 
+        ImPlot::DestroyContext();
         ImGui::DestroyContext();
     }
 
@@ -209,7 +211,7 @@ static std::string GetRandomId() {
 // Recursive function to draw ImGui menus
 void RenderSubmenuTree(const MenuNode& node, std::vector<std::unique_ptr<ITab>>& activeTabs) {
     for (const auto* info : node.items) {
-        std::string label = "Open " + info->displayName;
+        std::string label = info->displayName;
         if (ImGui::MenuItem(label.c_str())) {
             activeTabs.push_back(info->factory(GetRandomId()));
         }
