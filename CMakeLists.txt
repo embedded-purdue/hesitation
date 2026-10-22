@@ -1,20 +1,28 @@
-cmake_minimum_required(VERSION 3.16)
-project(nep_controls LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.20)
+
+project(nep_controls
+    VERSION 0.1.0
+    LANGUAGES CXX C
+)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-include(CTest)   # turns on testing (BUILD_TESTING=ON)
+# Keep all executables in a predictable location.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
-# ---- Modules ----
-add_subdirectory(software/thrust_vectoring)
-# add_subdirectory(software/td3_attitude)
+# Enable testing support.
+include(CTest)
 
-# ---- Top-level app ----
-add_executable(nep_controls main.cpp)
-target_include_directories(nep_controls PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/app/src
-)
-target_link_libraries(nep_controls PRIVATE thrust_vectoring)
+# ==============================================================================
+# PROJECT MODULES
+# ==============================================================================
+
+# Engineering subsystems.
+# Each subsystem manages its own build configuration.
+add_subdirectory(software)
+
+# Desktop application.
+# All GUI, rendering and desktop dependencies are managed here.
+add_subdirectory(app)
