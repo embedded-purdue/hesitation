@@ -1,1 +1,1 @@
-
+Hi, my name is Aarav and I'm on the Physics Sim subteam for Hesitation! I'm interested in machine learning, fluid mechanics, and electromagnetics. I like to watch movies and hang out with friends in my free time.
