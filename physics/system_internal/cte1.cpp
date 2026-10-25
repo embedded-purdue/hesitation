@@ -1,25 +1,21 @@
-#include <iostream>
+#include "cte1.h"
+#include <stdexcept>
 
-struct ReactorInput{
-    double p_cmd;
-    double t_in;
-    double m_flow;
-};
+ReactorOutput simulateReactor(const ReactorInput& input) {
 
-struct ReactorOutput{
-    double p_th;
-    double t_out_1;
-};
+    if (input.p_cmd < 0 || input.t_in <= 0 || input.m_flow <= 0) {
+        throw std::invalid_argument("Invalid reactor input");
+    }
 
-ReactorOutput simulateReactor(ReactorInput input){
     const double efficiency_b = 0.25;
     const double specificHeat = 520;
 
     ReactorOutput output;
 
-    output.p_th = input.p_cmd/efficiency_b;
+    output.p_th = input.p_cmd / efficiency_b;
 
-    output.t_out_1 = input.t_in + output.p_th/(input.m_flow * specificHeat);
+    output.t_out_1 =
+        input.t_in + output.p_th / (input.m_flow * specificHeat);
 
     return output;
 }

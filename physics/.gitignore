@@ -1,0 +1,8 @@
+# Compiled object files
+*.o
+
+# macOS debugging information
+*.dSYM/
+
+# CTE-1 test executable
+system_internal/test.cte1
