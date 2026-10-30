@@ -127,8 +127,8 @@ file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
 )
 
 add_executable(${PROJECT_NAME}
-    "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/main.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/main.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/main.h"
     ${PROJECT_SOURCES}
 )
 

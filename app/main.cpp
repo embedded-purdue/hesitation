@@ -48,6 +48,9 @@ bool Application::Initialize() {
         return false;
     }
 
+    // Start background tasks
+    m_orbitSim.Start();
+
     return true;
 }
 
@@ -64,6 +67,9 @@ void Application::Run() {
 }
 
 void Application::Shutdown() {
+    // Stop background tasks first
+    m_orbitSim.Stop();
+
     // Shut down modules before dependencies
     m_gui.Shutdown();
 

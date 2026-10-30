@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/src/gui/gui.h"
+#include "app/src/physics/OrbitSimTask.h"
 
 class GLFWwindow;
 
@@ -20,4 +21,5 @@ class Application {
   private:
     GLFWwindow* m_window;
     GUI m_gui;
+    OrbitSimTask m_orbitSim;
 };
