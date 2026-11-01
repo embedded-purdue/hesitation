@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package hesitation.environment;
+
+// Simulation commands
+message SimulationStart {}
+
+message SimulationStop {}
+
+message SimulationReset {}
+
+// Simulation telemetry
+message SimulationStatus {
+    bool running = 1;
+    double simulation_time = 2;
+}
+
+message PositionTelemetry {
+    double x = 1;
+    double y = 2;
+    double z = 3;
+}
+
+message VelocityTelemetry {
+    double x = 1;
+    double y = 2;
+    double z = 3;
+}

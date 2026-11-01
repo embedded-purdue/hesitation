@@ -1,9 +1,11 @@
 #pragma once
 
 #include "../BackgroundTask.h"
-#include <iostream>
 
 class OrbitSimTask : public BackgroundTask {
+  public:
+    bool Initialize();
+
   protected:
     void Run() override;
 };

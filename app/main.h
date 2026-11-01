@@ -1,5 +1,7 @@
 #pragma once
 
+#include <zmq.hpp>
+
 #include "app/src/gui/gui.h"
 #include "app/src/physics/OrbitSimTask.h"
 
