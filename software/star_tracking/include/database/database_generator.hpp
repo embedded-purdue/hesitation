@@ -25,6 +25,10 @@
  *    n_comb = 10 combinations) are evaluated to precompute Delabie's 6 invariant centroid features.
  * (Delabie et al., 2013, Section II.E.2 "Preprocessed Database").
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." JGCD, 36(2), pp. 476–488. Section II.B
@@ -43,6 +47,15 @@
 namespace star_tracker {
 
 /**
+ * @enum SphereDistributionMethod
+ * @brief Celestial sphere covering algorithm for database generation.
+ */
+enum class SphereDistributionMethod {
+    FIBONACCI_SPIRAL,    ///< Fibonacci spiral covering on S^2
+    LEOPARDI_EQUAL_AREA  ///< Recursive zonal equal-area partition (Leopardi 2006, Delabie et al. 2013 [14])
+};
+
+/**
  * @struct DatabaseGeneratorConfig
  * @brief Configuration parameters for reference image sphere generation.
  */
@@ -51,6 +64,7 @@ struct DatabaseGeneratorConfig {
     double magnitude_threshold{5.5};  ///< Maximum visual magnitude cutoff (e.g. 5.5 ensures >=3 stars per FOV)
     double margin_pixels{5.0};        ///< Sensor border guard margin in pixels
     std::string catalog_source{"Hipparcos"}; ///< Stellar catalog label
+    SphereDistributionMethod distribution_method{SphereDistributionMethod::FIBONACCI_SPIRAL}; ///< Spherical covering method
 };
 
 /**
@@ -67,10 +81,34 @@ public:
         : config_(config) {}
 
     /**
+     * @brief Computes right ascension boundary for FOV gamma and declination delta (Delabie et al. 2013, Eq. 3).
+     * @details alpha_b = gamma / (2 * cos(delta))
+     * @param fov_rad Camera field-of-view in radians (gamma).
+     * @param dec_rad Center declination in radians (delta).
+     * @return Half-width right ascension boundary in radians.
+     */
+    static double calculate_ra_boundary(double fov_rad, double dec_rad) {
+        double cos_dec = std::cos(dec_rad);
+        if (std::abs(cos_dec) < 1e-4) return M_PI; // Near poles
+        return std::min(M_PI, fov_rad / (2.0 * cos_dec));
+    }
+
+    /**
+     * @brief Generates N unit vectors covering S^2 using the specified distribution method.
+     * @param num_points Total number of points.
+     * @param method Distribution algorithm (Fibonacci spiral or Leopardi EQ).
+     * @return Vector of normalized 3D points on unit sphere.
+     */
+    static std::vector<Vector3> generate_sphere_points(
+        uint32_t num_points,
+        SphereDistributionMethod method = SphereDistributionMethod::FIBONACCI_SPIRAL
+    );
+
+    /**
      * @brief Generates a complete reference database from an astronomical star catalog.
      * @details
-     * Synthesizes N reference pointings distributed via Fibonacci spherical covering, projects
-     * visible stars, and precomputes all Delabie centroid features.
+     * Synthesizes N reference pointings distributed via Fibonacci or Leopardi spherical covering,
+     * projects visible stars, and precomputes all Delabie centroid features.
      *
      * @param catalog Astronomical star catalog.
      * @param camera Target camera intrinsic model and field of view.

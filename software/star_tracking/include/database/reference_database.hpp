@@ -21,6 +21,10 @@
  *    Generates human- and machine-readable metadata summaries for configuration audits and
  *    Hardware-In-The-Loop (HITL) integration.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." JGCD, 36(2), pp. 476–488. Section II.B

@@ -27,6 +27,10 @@
  * for standard optics). Delabie's SDT algorithm is tested and verified to maintain >99%
  * identification accuracy even when centroid positional errors reach 1000 arcseconds (>7 pixels).
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." JGCD, 36(2), pp. 476–488. Section III.A

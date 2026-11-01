@@ -2,6 +2,10 @@
  * @file database_generator.cpp
  * @brief Implementation of Fibonacci sphere reference image distribution and feature generation.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." Journal of Guidance, Control, and Dynamics, 36(2),
@@ -9,10 +13,95 @@
  */
 
 #include "database/database_generator.hpp"
+#include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <numeric>
+#include <vector>
 
 namespace star_tracker {
+
+std::vector<Vector3> DatabaseGenerator::generate_sphere_points(
+    uint32_t num_points,
+    SphereDistributionMethod method
+) {
+    std::vector<Vector3> points;
+    if (num_points == 0) return points;
+    if (num_points == 1) {
+        points.emplace_back(0.0, 0.0, 1.0);
+        return points;
+    }
+
+    if (method == SphereDistributionMethod::LEOPARDI_EQUAL_AREA) {
+        // Leopardi's Recursive Zonal Equal Area (EQ) Sphere Partitioning (Leopardi 2006, Delabie et al. 2013 [14])
+        double area_per_region = 4.0 * M_PI / static_cast<double>(num_points);
+        double s = std::sqrt(area_per_region);
+
+        // North and south polar caps
+        double theta_cap = 2.0 * std::asin(std::sqrt(1.0 / static_cast<double>(num_points)));
+        double collar_span = M_PI - 2.0 * theta_cap;
+        int n_collars = std::max(1, static_cast<int>(std::round(collar_span / s)));
+
+        // North pole
+        points.emplace_back(0.0, 0.0, 1.0);
+
+        // Compute points per collar
+        std::vector<int> m(n_collars);
+        int total_assigned = 0;
+        for (int i = 0; i < n_collars; ++i) {
+            double ct0 = std::cos(theta_cap + i * collar_span / n_collars);
+            double ct1 = std::cos(theta_cap + (i + 1) * collar_span / n_collars);
+            double collar_area = 2.0 * M_PI * (ct0 - ct1);
+            m[i] = static_cast<int>(std::round(collar_area / area_per_region));
+            total_assigned += m[i];
+        }
+
+        // Adjust rounding discrepancies to ensure total points == num_points - 2
+        int target_collar_points = static_cast<int>(num_points) - 2;
+        int diff = target_collar_points - total_assigned;
+        if (!m.empty()) {
+            m[n_collars / 2] += diff;
+            if (m[n_collars / 2] < 1) m[n_collars / 2] = 1;
+        }
+
+        for (int i = 0; i < n_collars; ++i) {
+            double th_mid = theta_cap + (i + 0.5) * collar_span / n_collars;
+            int num_pts = std::max(1, m[i]);
+            double phase = (i % 2) * (M_PI / static_cast<double>(num_pts));
+            for (int j = 0; j < num_pts; ++j) {
+                double phi = 2.0 * M_PI * j / static_cast<double>(num_pts) + phase;
+                double x = std::sin(th_mid) * std::cos(phi);
+                double y = std::sin(th_mid) * std::sin(phi);
+                double z = std::cos(th_mid);
+                points.emplace_back(x, y, z);
+            }
+        }
+
+        // South pole
+        points.emplace_back(0.0, 0.0, -1.0);
+
+        // If slight discrepancy remains, trim or duplicate
+        while (points.size() > num_points) points.pop_back();
+        while (points.size() < num_points) {
+            double y = 1.0 - (2.0 * points.size()) / (num_points - 1);
+            double r = std::sqrt(std::max(0.0, 1.0 - y * y));
+            points.emplace_back(r, y, 0.0);
+        }
+        return points;
+    }
+
+    // Default: Fibonacci spiral covering
+    const double phi_golden = M_PI * (3.0 - std::sqrt(5.0)); // ~2.39996 rad
+    for (uint32_t i = 0; i < num_points; ++i) {
+        double y = (num_points == 1) ? 0.0 : 1.0 - (2.0 * i) / (num_points - 1);
+        double r = std::sqrt(std::max(0.0, 1.0 - y * y));
+        double theta = phi_golden * i;
+        double x = r * std::cos(theta);
+        double z = r * std::sin(theta);
+        points.emplace_back(x, y, z);
+    }
+    return points;
+}
 
 ReferenceDatabase DatabaseGenerator::generate(
     const StarCatalog& catalog,
@@ -23,24 +112,16 @@ ReferenceDatabase DatabaseGenerator::generate(
     if (N == 0) return db;
 
     // Filter catalog to magnitude threshold
-    // Delabie et al. (2013, Section II.B) note that magnitude 5.3-5.5 guarantees >= 3 stars per 20° FOV
     StarCatalog filtered = catalog.filter_by_magnitude(config_.magnitude_threshold);
     std::cout << "Generating reference database with " << N << " images from "
-              << filtered.size() << " stars (mag <= " << config_.magnitude_threshold << ")...\n";
+              << filtered.size() << " stars (mag <= " << config_.magnitude_threshold
+              << ", method: " << (config_.distribution_method == SphereDistributionMethod::LEOPARDI_EQUAL_AREA ? "Leopardi EQ" : "Fibonacci spiral") << ")...\n";
 
-    // Golden angle in radians: phi_golden = pi * (3 - sqrt(5)) ≈ 2.39996 rad
-    const double phi_golden = M_PI * (3.0 - std::sqrt(5.0));
+    std::vector<Vector3> sphere_points = generate_sphere_points(N, config_.distribution_method);
     const Vector3 z_axis(0.0, 0.0, 1.0);
 
-    for (uint32_t i = 0; i < N; ++i) {
-        // Fibonacci spiral covering distribution on the unit sphere S^2
-        double y = (N == 1) ? 0.0 : 1.0 - (2.0 * i) / (N - 1);
-        double r = std::sqrt(std::max(0.0, 1.0 - y * y));
-        double theta = phi_golden * i;
-        double x = r * std::cos(theta);
-        double z = r * std::sin(theta);
-
-        Vector3 center_dir = Vector3(x, y, z).normalized();
+    for (uint32_t i = 0; i < sphere_points.size(); ++i) {
+        Vector3 center_dir = sphere_points[i].normalized();
 
         // Construct rotation quaternion q that aligns center_dir with camera optical axis +Z:
         // R(q) * center_dir = (0, 0, 1)^T

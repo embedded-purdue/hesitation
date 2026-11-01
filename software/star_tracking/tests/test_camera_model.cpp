@@ -2,6 +2,10 @@
  * @file test_camera_model.cpp
  * @brief Unit tests for pinhole camera projection, FOV bounds, and lens distortion.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., De Schutter, J., and Vandenbussche, B. (2013). "Highly Efficient Attitude-Estimation
  *   Algorithm for Star Trackers Using Optimal Image Matching." JGCD, 36(6), pp. 1672–1680.
@@ -69,4 +73,27 @@ TEST(CameraModelTest, DistortionModel) {
 
     EXPECT_NEAR(x_rec, xn, 1e-6);
     EXPECT_NEAR(y_rec, yn, 1e-6);
+}
+
+// Verifies Herschel STR-A 8-parameter polynomial model (Delabie et al. 2013 Table 4, Eqs. 3-4 and 7-8)
+TEST(CameraModelTest, HerschelDistortionModel) {
+    DistortionModel herschel = DistortionModel::herschel();
+    EXPECT_EQ(herschel.type, DistortionType::HERSCHEL_POLYNOMIAL);
+    EXPECT_FALSE(herschel.is_identity());
+
+    // Test across field of view
+    double xn = 0.05, yn = -0.08;
+    double xd = 0.0, yd = 0.0;
+    herschel.apply(xn, yn, xd, yd);
+
+    // Apply forward and verify distortion magnitude is physical (order of microradians to milliradians)
+    EXPECT_NEAR(xd, xn, 0.01);
+    EXPECT_NEAR(yd, yn, 0.01);
+
+    double x_rec = 0.0, y_rec = 0.0;
+    herschel.remove(xd, yd, x_rec, y_rec);
+
+    // Round-trip precision of the paired polynomials
+    EXPECT_NEAR(x_rec, xn, 5e-4);
+    EXPECT_NEAR(y_rec, yn, 5e-4);
 }

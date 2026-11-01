@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(star_tracker VERSION 1.0.0 LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -44,6 +46,10 @@ target_link_libraries(generate_database PRIVATE star_tracker_lib)
 add_executable(star_tracker_main src/main.cpp)
 target_link_libraries(star_tracker_main PRIVATE star_tracker_lib)
 
+# Monte Carlo Research Verification Tool
+add_executable(monte_carlo_validation tools/monte_carlo_validation.cpp)
+target_link_libraries(monte_carlo_validation PRIVATE star_tracker_lib)
+
 # Testing with GoogleTest
 enable_testing()
 
@@ -62,7 +68,9 @@ macro(add_star_tracker_test test_name source_file)
 endmacro()
 
 add_star_tracker_test(test_quaternion tests/test_quaternion.cpp)
+add_star_tracker_test(test_wahba tests/test_wahba.cpp)
 add_star_tracker_test(test_camera_model tests/test_camera_model.cpp)
+add_star_tracker_test(test_database_generator tests/test_database_generator.cpp)
 add_star_tracker_test(test_centroid_extractor tests/test_centroid_extractor.cpp)
 add_star_tracker_test(test_distance_transform tests/test_distance_transform.cpp)
 add_star_tracker_test(test_centroid_matcher tests/test_centroid_matcher.cpp)

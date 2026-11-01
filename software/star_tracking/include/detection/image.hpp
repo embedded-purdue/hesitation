@@ -19,6 +19,10 @@
  * In HITL testing, `render_star_field` enables simulating realistic camera streams under
  * arbitrary spacecraft slew maneuvers without requiring physical optical collimators.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." JGCD, 36(2), pp. 476–488. DOI: 10.2514/1.56860.

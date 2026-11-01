@@ -16,6 +16,10 @@
  * - Camera sensor frame: +Z along the camera optical boresight, +X towards horizontal focal plane
  *   (right), and +Y towards vertical focal plane (down/up according to standard pinhole convention).
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." Journal of Guidance, Control, and Dynamics, 36(2).

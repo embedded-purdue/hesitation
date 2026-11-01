@@ -21,6 +21,10 @@
  * In Delabie et al. (2013, "SDT"), star magnitude plays a critical role in candidate generation:
  * bright stars are sorted to select the top combinations for triplet centroid feature matching.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." JGCD, 36(2), pp. 476–488. Section II.B

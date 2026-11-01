@@ -25,6 +25,10 @@
  *    Sorts all detected stars in descending order of brightness, ensuring the brightest stars
  *    appear first for Delabie's triplet centroid matching (Delabie et al., 2013, "SDT").
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." JGCD, 36(2), pp. 476–488. Section II.A

@@ -28,6 +28,10 @@
  * 6. Orientation Angle psi:
  *    Computed from the bisector of u_A and u_B, resolving image roll around the optical axis.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." JGCD, 36(2), pp. 476–488. Section II.C.2

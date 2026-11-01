@@ -2,6 +2,10 @@
  * @file test_quaternion.cpp
  * @brief Unit tests for Hamilton unit quaternions, SO(3) rotations, and angular distance.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., De Schutter, J., and Vandenbussche, B. (2013). "Highly Efficient Attitude-Estimation
  *   Algorithm for Star Trackers Using Optimal Image Matching." JGCD, 36(6), pp. 1672–1680.

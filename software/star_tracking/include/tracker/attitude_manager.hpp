@@ -40,6 +40,10 @@
  *    - Re-executes the Lost-in-Space pipeline for rapid autonomous reacquisition without
  *      interfering with attitude control loops.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." JGCD, 36(2), pp. 476–488. DOI: 10.2514/1.56860.

@@ -16,6 +16,10 @@
  *   [ m20 m21 m22 ]
  * Stored as index = row * 3 + col.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Shuster, M. D., and Oh, S. D. (1981). "Three-Axis Attitude Determination from Vector
  *   Observations." Journal of Guidance and Control, 4(1), pp. 70–77. DOI: 10.2514/3.19717.

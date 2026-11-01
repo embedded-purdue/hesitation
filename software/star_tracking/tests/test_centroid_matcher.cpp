@@ -2,6 +2,10 @@
  * @file test_centroid_matcher.cpp
  * @brief Unit tests for Delabie's centroid method, 2D rigid transformation, and 6-feature filter.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." JGCD, 36(2), pp. 476–488. Section II.C.2

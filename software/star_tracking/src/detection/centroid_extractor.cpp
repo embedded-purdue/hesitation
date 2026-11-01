@@ -2,6 +2,10 @@
  * @file centroid_extractor.cpp
  * @brief Implementation of subpixel Center-of-Gravity centroid extraction and flux integration.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." Journal of Guidance, Control, and Dynamics, 36(2),

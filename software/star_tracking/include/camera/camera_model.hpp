@@ -30,6 +30,10 @@
  * Delabie et al. (2013) demonstrate that a 20° x 20° FOV ensures that at least 3 bright stars
  * (magnitude <= 5.3) are visible across 100% of the celestial sphere.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., De Schutter, J., and Vandenbussche, B. (2013). "Highly Efficient Attitude-Estimation
  *   Algorithm for Star Trackers Using Optimal Image Matching." JGCD, 36(6), pp. 1672–1680.

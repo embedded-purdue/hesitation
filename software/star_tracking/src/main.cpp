@@ -24,6 +24,10 @@
  *    - Triggers autonomous tracking loss detection and immediate reacquisition
  * via Lost-in-Space.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust
  * Lost-in-Space Algorithm Based on the Shortest Distance Transform." Journal of

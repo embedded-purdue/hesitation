@@ -26,6 +26,10 @@
  * by 3x to 5x compared to the two-brightest-stars permutation method, while maintaining extreme
  * robustness to magnitude measurement noise and star order inversions.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." Journal of Guidance, Control, and Dynamics, 36(2),

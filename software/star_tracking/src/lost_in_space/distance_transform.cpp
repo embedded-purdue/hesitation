@@ -2,6 +2,10 @@
  * @file distance_transform.cpp
  * @brief Implementation of Maurer's linear-time exact Euclidean distance transform.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Maurer, C. R., Qi, R., and Raghavan, V. (2003). "A Linear Time Algorithm for Computing
  *   Exact Euclidean Distance Transforms of Binary Images in Arbitrary Dimensions." IEEE TPAMI,

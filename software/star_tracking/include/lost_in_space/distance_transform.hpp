@@ -25,6 +25,10 @@
  * Total time complexity is strictly O(W * H) where W and H are image dimensions, running in
  * ~3 milliseconds for a 1024x1024 image.
  *
+ * @author Eric Yu
+ * @date October 2026
+ * @version 1.0.0
+ *
  * @reference
  * - Delabie, T., Durt, T., and Vandersteen, J. (2013). "Highly Robust Lost-in-Space Algorithm
  *   Based on the Shortest Distance Transform." Journal of Guidance, Control, and Dynamics, 36(2),
