@@ -1,0 +1,13 @@
+.vscode/
+
+# --- Vivado / Xilinx ---
+*.log
+*.jou
+*.pb
+*.str
+*.mif
+*.xpr.data/
+*.xpr.backup/
+.Xil/
+ip/
+!**/ip/*/*.xci
