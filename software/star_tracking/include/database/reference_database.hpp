@@ -110,16 +110,28 @@ public:
      */
     bool is_compatible(const CameraModel& camera, const DatabaseMetadata& meta, double tolerance = 1e-3) const;
 
-    /// Appends a new precomputed reference image to the database.
+    /**
+     * @brief Appends a new precomputed reference image to the database.
+     * @param img ReferenceImage to add.
+     */
     void add_image(const ReferenceImage& img) { images_.push_back(img); }
 
-    /// Read-only access to all reference images.
+    /**
+     * @brief Read-only access to all reference images.
+     * @return const std::vector<ReferenceImage>& Collection of precomputed reference images.
+     */
     const std::vector<ReferenceImage>& images() const { return images_; }
 
-    /// Total count of reference images in the database.
+    /**
+     * @brief Total count of reference images in the database.
+     * @return size_t Count of reference images.
+     */
     size_t size() const { return images_.size(); }
 
-    /// Checks if database contains zero reference images.
+    /**
+     * @brief Checks if database contains zero reference images.
+     * @return true if database is empty, false otherwise.
+     */
     bool empty() const { return images_.empty(); }
 
     /**
@@ -129,7 +141,10 @@ public:
      */
     const ReferenceImage* find_image(uint64_t id) const;
 
-    /// Read-only access to stored database metadata.
+    /**
+     * @brief Read-only access to stored database metadata.
+     * @return const DatabaseMetadata& Reference to configuration metadata.
+     */
     const DatabaseMetadata& metadata() const { return metadata_; }
 
 private:

@@ -57,20 +57,37 @@ struct Vector3 {
      */
     constexpr Vector3(double x_, double y_, double z_) : x(x_), y(y_), z(z_) {}
 
-    /// Element-wise vector addition: v = v1 + v2
+    /**
+     * @brief Element-wise vector addition: v = v1 + v2.
+     * @param o Right-hand vector operand.
+     * @return Vector3 Sum vector.
+     */
     Vector3 operator+(const Vector3& o) const { return {x + o.x, y + o.y, z + o.z}; }
 
-    /// Element-wise vector subtraction: v = v1 - v2
+    /**
+     * @brief Element-wise vector subtraction: v = v1 - v2.
+     * @param o Right-hand vector operand.
+     * @return Vector3 Difference vector.
+     */
     Vector3 operator-(const Vector3& o) const { return {x - o.x, y - o.y, z - o.z}; }
 
-    /// Unary negation: -v
+    /**
+     * @brief Unary negation: -v.
+     * @return Vector3 Component-wise negated vector.
+     */
     Vector3 operator-() const { return {-x, -y, -z}; }
 
-    /// Scalar multiplication: v * s
+    /**
+     * @brief Scalar multiplication: v * s.
+     * @param s Scalar multiplier.
+     * @return Vector3 Scaled vector.
+     */
     Vector3 operator*(double s) const { return {x * s, y * s, z * s}; }
 
     /**
-     * @brief Scalar division: v / s
+     * @brief Scalar division: v / s.
+     * @param s Scalar divisor.
+     * @return Vector3 Scaled vector.
      * @throws std::runtime_error if scalar divisor is near zero (< 1e-15).
      */
     Vector3 operator/(double s) const {
@@ -80,7 +97,11 @@ struct Vector3 {
         return {x / s, y / s, z / s};
     }
 
-    /// In-place element-wise addition
+    /**
+     * @brief In-place element-wise addition.
+     * @param o Right-hand vector operand.
+     * @return Vector3& Reference to this vector.
+     */
     Vector3& operator+=(const Vector3& o) {
         x += o.x;
         y += o.y;
@@ -88,7 +109,11 @@ struct Vector3 {
         return *this;
     }
 
-    /// In-place element-wise subtraction
+    /**
+     * @brief In-place element-wise subtraction.
+     * @param o Right-hand vector operand.
+     * @return Vector3& Reference to this vector.
+     */
     Vector3& operator-=(const Vector3& o) {
         x -= o.x;
         y -= o.y;
@@ -96,7 +121,11 @@ struct Vector3 {
         return *this;
     }
 
-    /// In-place scalar multiplication
+    /**
+     * @brief In-place scalar multiplication.
+     * @param s Scalar multiplier.
+     * @return Vector3& Reference to this vector.
+     */
     Vector3& operator*=(double s) {
         x *= s;
         y *= s;
@@ -129,17 +158,20 @@ struct Vector3 {
     /**
      * @brief Squared L2 Euclidean norm: ||v||^2 = x^2 + y^2 + z^2.
      * Computes norm without the expensive square root operation.
+     * @return double Squared Euclidean norm.
      */
     double norm_squared() const { return x * x + y * y + z * z; }
 
     /**
      * @brief L2 Euclidean norm (magnitude): ||v|| = sqrt(x^2 + y^2 + z^2).
+     * @return double Euclidean norm.
      */
     double norm() const { return std::sqrt(norm_squared()); }
 
     /**
      * @brief Returns a normalized unit vector u = v / ||v||.
      * If the norm is less than numerical tolerance (1e-15), returns a zero vector.
+     * @return Vector3 Unit-length vector.
      */
     Vector3 normalized() const {
         double n = norm();
@@ -172,6 +204,9 @@ struct Vector3 {
 
 /**
  * @brief Scalar-vector commutative multiplication operator: s * v.
+ * @param s Scalar multiplier.
+ * @param v Vector operand.
+ * @return Vector3 Scaled vector.
  */
 inline Vector3 operator*(double s, const Vector3& v) {
     return v * s;
@@ -179,6 +214,9 @@ inline Vector3 operator*(double s, const Vector3& v) {
 
 /**
  * @brief Stream insertion operator for human-readable vector debugging.
+ * @param os Output stream reference.
+ * @param v Vector to display.
+ * @return std::ostream& Stream reference.
  */
 inline std::ostream& operator<<(std::ostream& os, const Vector3& v) {
     os << "(" << v.x << ", " << v.y << ", " << v.z << ")";

@@ -137,10 +137,16 @@ public:
         const DistanceTransform& dt
     );
 
-    /// Read-only access to matcher configuration.
+    /**
+     * @brief Read-only access to matcher configuration.
+     * @return const LostInSpaceConfig& Reference to current matcher configuration.
+     */
     const LostInSpaceConfig& config() const { return config_; }
 
-    /// Updates matcher configuration.
+    /**
+     * @brief Updates matcher configuration settings.
+     * @param config New algorithm configuration parameters to apply.
+     */
     void set_config(const LostInSpaceConfig& config) {
         config_ = config;
         filter_.set_config(config.filter_config);

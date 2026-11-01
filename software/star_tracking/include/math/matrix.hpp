@@ -65,6 +65,7 @@ public:
 
     /**
      * @brief Returns a 3x3 identity matrix I_3.
+     * @return Matrix3 Identity matrix.
      */
     static Matrix3 identity() {
         return Matrix3(1.0, 0.0, 0.0,
@@ -74,6 +75,7 @@ public:
 
     /**
      * @brief Returns a 3x3 zero matrix 0_{3x3}.
+     * @return Matrix3 Zero matrix.
      */
     static Matrix3 zeros() {
         return Matrix3(0.0, 0.0, 0.0,
@@ -85,6 +87,7 @@ public:
      * @brief Read-only element access by 0-indexed row and column.
      * @param row Row index [0, 2]
      * @param col Column index [0, 2]
+     * @return double Element value at (row, col).
      */
     double operator()(int row, int col) const {
         return m[row * 3 + col];
@@ -94,26 +97,39 @@ public:
      * @brief Mutable element access by 0-indexed row and column.
      * @param row Row index [0, 2]
      * @param col Column index [0, 2]
+     * @return double& Reference to element at (row, col).
      */
     double& operator()(int row, int col) {
         return m[row * 3 + col];
     }
 
-    /// Matrix addition: A + B
+    /**
+     * @brief Matrix addition: A + B.
+     * @param o Right-hand matrix operand.
+     * @return Matrix3 Component-wise sum matrix.
+     */
     Matrix3 operator+(const Matrix3& o) const {
         Matrix3 res;
         for (int i = 0; i < 9; ++i) res.m[i] = m[i] + o.m[i];
         return res;
     }
 
-    /// Matrix subtraction: A - B
+    /**
+     * @brief Matrix subtraction: A - B.
+     * @param o Right-hand matrix operand.
+     * @return Matrix3 Component-wise difference matrix.
+     */
     Matrix3 operator-(const Matrix3& o) const {
         Matrix3 res;
         for (int i = 0; i < 9; ++i) res.m[i] = m[i] - o.m[i];
         return res;
     }
 
-    /// Scalar-matrix multiplication: A * s
+    /**
+     * @brief Scalar-matrix multiplication: A * s.
+     * @param s Scalar multiplier.
+     * @return Matrix3 Scaled matrix.
+     */
     Matrix3 operator*(double s) const {
         Matrix3 res;
         for (int i = 0; i < 9; ++i) res.m[i] = m[i] * s;
@@ -123,6 +139,8 @@ public:
     /**
      * @brief Standard matrix multiplication: C = A * B.
      * Evaluated using 3 nested loops with scalar accumulator.
+     * @param o Right-hand matrix operand.
+     * @return Matrix3 Matrix product.
      */
     Matrix3 operator*(const Matrix3& o) const {
         Matrix3 res = zeros();
@@ -140,6 +158,8 @@ public:
     /**
      * @brief Matrix-vector product: y = A * x.
      * Transforms 3D vector x by matrix A.
+     * @param v 3D vector operand.
+     * @return Vector3 Transformed 3D vector.
      */
     Vector3 operator*(const Vector3& v) const {
         return {
@@ -152,6 +172,7 @@ public:
     /**
      * @brief Computes transpose of matrix: A^T.
      * For orthogonal rotation matrices, A^T = A^-1.
+     * @return Matrix3 Transposed matrix.
      */
     Matrix3 transpose() const {
         return Matrix3(
@@ -163,6 +184,7 @@ public:
 
     /**
      * @brief Computes scalar determinant det(A) using Laplace cofactor expansion.
+     * @return double Scalar determinant value.
      */
     double determinant() const {
         return m[0] * (m[4] * m[8] - m[5] * m[7])
@@ -172,6 +194,7 @@ public:
 
     /**
      * @brief Computes the inverse matrix A^-1 via analytic adjugate cofactor matrix.
+     * @return Matrix3 Inverse 3x3 matrix.
      * @throws std::runtime_error if determinant is within numerical zero threshold (|det| < 1e-15).
      */
     Matrix3 inverse() const {
@@ -198,6 +221,7 @@ public:
     /**
      * @brief Generates elementary rotation matrix around X axis by angle theta (radians).
      * @param angle Rotation angle in radians.
+     * @return Matrix3 Elementary rotation matrix about X.
      */
     static Matrix3 rot_x(double angle) {
         double c = std::cos(angle);
@@ -210,6 +234,7 @@ public:
     /**
      * @brief Generates elementary rotation matrix around Y axis by angle theta (radians).
      * @param angle Rotation angle in radians.
+     * @return Matrix3 Elementary rotation matrix about Y.
      */
     static Matrix3 rot_y(double angle) {
         double c = std::cos(angle);
@@ -222,6 +247,7 @@ public:
     /**
      * @brief Generates elementary rotation matrix around Z axis (optical boresight) by angle theta (radians).
      * @param angle Rotation angle in radians.
+     * @return Matrix3 Elementary rotation matrix about Z.
      */
     static Matrix3 rot_z(double angle) {
         double c = std::cos(angle);
@@ -236,6 +262,7 @@ public:
      * R(u, theta) = I * cos(theta) + (1 - cos(theta)) * (u * u^T) + [u]_x * sin(theta)
      * @param axis 3D rotation axis (normalized automatically).
      * @param angle Rotation angle in radians.
+     * @return Matrix3 3x3 orthogonal rotation matrix.
      */
     static Matrix3 from_axis_angle(const Vector3& axis, double angle) {
         Vector3 u = axis.normalized();
@@ -253,6 +280,9 @@ public:
 
 /**
  * @brief Commutative scalar-matrix multiplication operator: s * A.
+ * @param s Scalar multiplier.
+ * @param mat Matrix operand.
+ * @return Matrix3 Scaled matrix.
  */
 inline Matrix3 operator*(double s, const Matrix3& mat) {
     return mat * s;

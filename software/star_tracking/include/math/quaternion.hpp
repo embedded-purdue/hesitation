@@ -77,6 +77,7 @@ struct Quaternion {
   /**
    * @brief Returns the identity quaternion representing zero rotation [1, 0, 0,
    * 0].
+   * @return Quaternion Identity quaternion.
    */
   static Quaternion identity() { return Quaternion(1.0, 0.0, 0.0, 0.0); }
 
@@ -86,6 +87,7 @@ struct Quaternion {
    * q = [cos(theta/2), u * sin(theta/2)]
    * @param axis 3D rotation axis vector (normalized automatically).
    * @param angle Rotation angle in radians.
+   * @return Quaternion Resulting unit quaternion.
    */
   static Quaternion from_axis_angle(const Vector3 &axis, double angle) {
     Vector3 u = axis.normalized();
@@ -103,6 +105,7 @@ struct Quaternion {
    * expansion: q ≈ [1, 0.5 * r_x, 0.5 * r_y, 0.5 * r_z] matching the
    * small-angle approximation in Delabie et al. (2013) Eq. (20).
    * @param r 3D rotation vector in radians.
+   * @return Quaternion Unit quaternion representing the rotation vector.
    */
   static Quaternion from_rotation_vector(const Vector3 &r) {
     double theta = r.norm();
@@ -120,6 +123,7 @@ struct Quaternion {
    * @param roll_x Roll angle around X axis (radians).
    * @param pitch_y Pitch angle around Y axis (radians).
    * @param yaw_z Yaw angle around Z axis (radians).
+   * @return Quaternion Unit quaternion representing the Euler rotation.
    */
   static Quaternion from_euler(double roll_x, double pitch_y, double yaw_z) {
     double cr = std::cos(roll_x * 0.5);
@@ -141,6 +145,7 @@ struct Quaternion {
    * Uses Shepperd's algorithm for numerical stability, selecting the maximum
    * diagonal element to avoid division by near-zero values.
    * @param R Orthogonal 3x3 rotation matrix.
+   * @return Quaternion Extracted unit quaternion.
    */
   static Quaternion from_matrix(const Matrix3 &R) {
     double tr = R(0, 0) + R(1, 1) + R(2, 2);
@@ -173,15 +178,22 @@ struct Quaternion {
     return q.normalized();
   }
 
-  /// Squared quaternion Euclidean norm: ||q||^2 = w^2 + x^2 + y^2 + z^2.
+  /**
+   * @brief Squared quaternion Euclidean norm: ||q||^2 = w^2 + x^2 + y^2 + z^2.
+   * @return double Squared norm.
+   */
   double norm_squared() const { return w * w + x * x + y * y + z * z; }
 
-  /// Quaternion Euclidean norm: ||q|| = sqrt(w^2 + x^2 + y^2 + z^2).
+  /**
+   * @brief Quaternion Euclidean norm: ||q|| = sqrt(w^2 + x^2 + y^2 + z^2).
+   * @return double Quaternion norm.
+   */
   double norm() const { return std::sqrt(norm_squared()); }
 
   /**
    * @brief Normalizes quaternion to unit length (||q|| = 1).
    * If norm < 1e-15, returns identity quaternion.
+   * @return Quaternion Unit-normalized quaternion.
    */
   Quaternion normalized() const {
     double n = norm();
@@ -196,11 +208,13 @@ struct Quaternion {
    * @brief Quaternion conjugate q* = [w, -x, -y, -z].
    * For unit quaternions, q* is equal to the inverse q^-1.
    * @see Delabie et al. (2013) AIM Eq. (5).
+   * @return Quaternion Conjugated quaternion.
    */
   Quaternion conjugate() const { return Quaternion(w, -x, -y, -z); }
 
   /**
    * @brief Computes multiplicative inverse q^-1 = q* / ||q||^2.
+   * @return Quaternion Inverted quaternion.
    */
   Quaternion inverse() const {
     double n2 = norm_squared();
@@ -217,6 +231,8 @@ struct Quaternion {
    * Computes the compound rotation corresponding to rotating first by o and
    * then by *this.
    * @see Delabie et al. (2013) AIM Eq. (21): q_e = q_diff ⊗ q_dat.
+   * @param o Right-hand quaternion operand.
+   * @return Quaternion Product quaternion.
    */
   Quaternion operator*(const Quaternion &o) const {
     return Quaternion(w * o.w - x * o.x - y * o.y - z * o.z,
@@ -225,20 +241,36 @@ struct Quaternion {
                       w * o.z + x * o.y - y * o.x + z * o.w);
   }
 
-  /// Element-wise quaternion addition
+  /**
+   * @brief Element-wise quaternion addition.
+   * @param o Right-hand quaternion operand.
+   * @return Quaternion Sum quaternion.
+   */
   Quaternion operator+(const Quaternion &o) const {
     return {w + o.w, x + o.x, y + o.y, z + o.z};
   }
 
-  /// Element-wise quaternion subtraction
+  /**
+   * @brief Element-wise quaternion subtraction.
+   * @param o Right-hand quaternion operand.
+   * @return Quaternion Difference quaternion.
+   */
   Quaternion operator-(const Quaternion &o) const {
     return {w - o.w, x - o.x, y - o.y, z - o.z};
   }
 
-  /// Scalar-quaternion multiplication
+  /**
+   * @brief Scalar-quaternion multiplication.
+   * @param s Scalar multiplier.
+   * @return Quaternion Scaled quaternion.
+   */
   Quaternion operator*(double s) const { return {w * s, x * s, y * s, z * s}; }
 
-  /// 4D inner product: q1 · q2 = w1*w2 + x1*x2 + y1*y2 + z1*z2
+  /**
+   * @brief 4D inner product: q1 · q2 = w1*w2 + x1*x2 + y1*y2 + z1*z2.
+   * @param o Other quaternion.
+   * @return double Scalar dot product.
+   */
   double dot(const Quaternion &o) const {
     return w * o.w + x * o.x + y * o.y + z * o.z;
   }
@@ -248,6 +280,7 @@ struct Quaternion {
    * Matrix (DCM).
    * @details
    * Transforms vectors such that: v' = R * v.
+   * @return Matrix3 3x3 Direction Cosine Matrix.
    */
   Matrix3 to_matrix() const {
     double x2 = x * x, y2 = y * y, z2 = z * z;
@@ -261,7 +294,7 @@ struct Quaternion {
    * @brief Rotates a 3D vector v by this unit quaternion: v' = q ⊗ [0, v] ⊗
    * q^-1. Evaluated using DCM multiplication for computational efficiency.
    * @param v 3D vector in source frame.
-   * @return Rotated 3D vector in target frame.
+   * @return Vector3 Rotated 3D vector in target frame.
    */
   Vector3 rotate(const Vector3 &v) const { return to_matrix() * v; }
 
@@ -274,7 +307,7 @@ struct Quaternion {
    * radians in range [0, pi].
    * @param q1 First attitude quaternion.
    * @param q2 Second attitude quaternion.
-   * @return Angular error in radians.
+   * @return double Angular error in radians.
    */
   static double angular_distance(const Quaternion &q1, const Quaternion &q2) {
     double d = std::abs(q1.dot(q2));
@@ -286,11 +319,17 @@ struct Quaternion {
 
 /**
  * @brief Commutative scalar-quaternion multiplication operator: s * q.
+ * @param s Scalar multiplier.
+ * @param q Quaternion.
+ * @return Quaternion Scaled quaternion.
  */
 inline Quaternion operator*(double s, const Quaternion &q) { return q * s; }
 
 /**
  * @brief Stream insertion operator for human-readable quaternion logging.
+ * @param os Output stream reference.
+ * @param q Quaternion to display.
+ * @return std::ostream& Reference to output stream.
  */
 inline std::ostream &operator<<(std::ostream &os, const Quaternion &q) {
   os << "[" << q.w << ", " << q.x << ", " << q.y << ", " << q.z << "]";

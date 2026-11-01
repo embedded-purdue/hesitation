@@ -99,10 +99,16 @@ public:
         return true;
     }
 
-    /// Read-only access to filter configuration.
+    /**
+     * @brief Read-only access to filter configuration.
+     * @return const CandidateFilterConfig& Reference to current filter configuration.
+     */
     const CandidateFilterConfig& config() const { return config_; }
 
-    /// Updates filter configuration.
+    /**
+     * @brief Updates filter configuration settings.
+     * @param config New filter configuration to apply.
+     */
     void set_config(const CandidateFilterConfig& config) { config_ = config; }
 
 private:

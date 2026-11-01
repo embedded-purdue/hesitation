@@ -86,6 +86,10 @@ struct DistortionModel {
 
     /**
      * @brief Constructor for full 8-parameter polynomial distortion models.
+     * @param k Coefficients k0..k7 for forward sensor x correction.
+     * @param h Coefficients h0..h7 for forward sensor y correction.
+     * @param k_inv Coefficients k0_inv..k7_inv for database x distortion.
+     * @param h_inv Coefficients h0_inv..h7_inv for database y distortion.
      */
     DistortionModel(const std::array<double, 8>& k,
                     const std::array<double, 8>& h,
@@ -97,6 +101,7 @@ struct DistortionModel {
     /**
      * @brief Creates a DistortionModel pre-loaded with the Herschel STR-A calibration parameters.
      * @reference Delabie et al. (2013), JGCD 36(6), Table 4.
+     * @return DistortionModel Fully configured Herschel cross-polynomial model.
      */
     static DistortionModel herschel() {
         return DistortionModel(
@@ -125,6 +130,7 @@ struct DistortionModel {
 
     /**
      * @brief Checks if the lens distortion is numerically zero (ideal pinhole).
+     * @return true if distortion coefficients are negligibly small, false otherwise.
      */
     bool is_identity() const {
         if (type == DistortionType::RADIAL) {
@@ -138,6 +144,10 @@ struct DistortionModel {
      * @details
      * For radial: maps (xn, yn) to (xd, yd) = (xn * (1 + k1*r^2 + k2*r^4), yn * (1 + k1*r^2 + k2*r^4)).
      * For Herschel: maps ideal database coordinates to distorted coordinates via Eqs. (7-8).
+     * @param xn Undistorted normalized X coordinate.
+     * @param yn Undistorted normalized Y coordinate.
+     * @param[out] xd Distorted normalized X coordinate.
+     * @param[out] yd Distorted normalized Y coordinate.
      */
     void apply(double xn, double yn, double& xd, double& yd) const {
         if (is_identity()) {
@@ -169,6 +179,11 @@ struct DistortionModel {
      * @details
      * For radial: computes undistorted (xn, yn) via fixed-point iteration.
      * For Herschel: evaluates closed-form correction polynomials from Eqs. (3-4).
+     * @param xd Distorted normalized X coordinate.
+     * @param yd Distorted normalized Y coordinate.
+     * @param[out] xn Undistorted normalized X coordinate.
+     * @param[out] yn Undistorted normalized Y coordinate.
+     * @param max_iterations Maximum fixed-point iteration limit for radial inversion (default: 10).
      */
     void remove(double xd, double yd, double& xn, double& yn, int max_iterations = 10) const {
         if (is_identity()) {

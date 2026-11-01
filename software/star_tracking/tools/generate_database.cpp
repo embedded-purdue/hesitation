@@ -34,6 +34,12 @@
 
 using namespace star_tracker;
 
+/**
+ * @brief Main offline generator tool for reference star databases.
+ * @param argc Command-line argument count.
+ * @param argv Command-line argument strings.
+ * @return int Exit status code (0 for success).
+ */
 int main(int argc, char** argv) {
     std::string catalog_path = "data/catalog/hipparcos.csv";
     std::string db_bin_path = "data/generated/reference_database.bin";

@@ -108,13 +108,22 @@ public:
         return distances_[y * width_ + x];
     }
 
-    /// Image width in pixels.
+    /**
+     * @brief Image width in pixels.
+     * @return int Width in pixels.
+     */
     int width() const { return width_; }
 
-    /// Image height in pixels.
+    /**
+     * @brief Image height in pixels.
+     * @return int Height in pixels.
+     */
     int height() const { return height_; }
 
-    /// Read-only access to full 1D flattened distance array (row-major).
+    /**
+     * @brief Read-only access to full 1D flattened distance array (row-major).
+     * @return const std::vector<uint32_t>& Flattened buffer of squared Euclidean distances.
+     */
     const std::vector<uint32_t>& data() const { return distances_; }
 
 private:

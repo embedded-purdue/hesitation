@@ -17,6 +17,14 @@
 
 namespace star_tracker {
 
+/**
+ * @brief Closed-form optimal image matching for explicitly paired star sets.
+ * @param observed_stars Star centroids in camera image.
+ * @param reference_stars Corresponding star positions in reference frame.
+ * @param weights Non-negative weighting factors for each star pair.
+ * @param coarse_attitude Reference frame attitude quaternion q_dat.
+ * @return AIMResult containing optimal attitude and transformation parameters.
+ */
 AIMResult
 AIMEstimator::match_paired_stars(const std::vector<ImageStar> &observed_stars,
                                  const std::vector<ImageStar> &reference_stars,
@@ -129,6 +137,13 @@ AIMEstimator::match_paired_stars(const std::vector<ImageStar> &observed_stars,
   return res;
 }
 
+/**
+ * @brief Refines attitude by matching detected camera stars against reference image stars.
+ * @param observed_stars Detected camera star centroids.
+ * @param reference Reference image containing catalog stars projected at coarse attitude.
+ * @param coarse_attitude Prior coarse attitude quaternion q_dat.
+ * @return AIMResult containing refined attitude, focal translations, and residuals.
+ */
 AIMResult AIMEstimator::estimate(const std::vector<ImageStar> &observed_stars,
                                  const ReferenceImage &reference,
                                  const Quaternion &coarse_attitude) {

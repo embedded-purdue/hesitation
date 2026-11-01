@@ -89,10 +89,16 @@ public:
         const CameraModel& camera
     ) const;
 
-    /// Read-only access to detector configuration.
+    /**
+     * @brief Read-only access to detector configuration.
+     * @return const StarDetectorConfig& Reference to current configuration settings.
+     */
     const StarDetectorConfig& config() const { return config_; }
 
-    /// Updates detector configuration.
+    /**
+     * @brief Updates detector configuration parameters.
+     * @param config New configuration settings to apply.
+     */
     void set_config(const StarDetectorConfig& config) { config_ = config; }
 
 private:

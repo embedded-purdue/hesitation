@@ -23,6 +23,11 @@
 
 namespace star_tracker {
 
+/**
+ * @brief Loads catalog stars from a CSV file.
+ * @param filepath Path to the CSV file.
+ * @return true if successfully loaded, false otherwise.
+ */
 bool StarCatalog::load_from_csv(const std::string& filepath) {
     std::ifstream file(filepath);
     if (!file.is_open()) {
@@ -72,6 +77,11 @@ bool StarCatalog::load_from_csv(const std::string& filepath) {
     return !stars_.empty();
 }
 
+/**
+ * @brief Creates a filtered sub-catalog containing only stars brighter than or equal to max_mag.
+ * @param max_mag Maximum apparent visual magnitude threshold.
+ * @return StarCatalog Filtered catalog.
+ */
 StarCatalog StarCatalog::filter_by_magnitude(double max_mag) const {
     StarCatalog filtered;
     for (const auto& star : stars_) {
@@ -82,6 +92,14 @@ StarCatalog StarCatalog::filter_by_magnitude(double max_mag) const {
     return filtered;
 }
 
+/**
+ * @brief Projects all catalog stars visible in the camera field of view for a given attitude.
+ * @param attitude Spacecraft attitude quaternion mapping celestial inertial frame to camera frame.
+ * @param camera Pinhole camera intrinsic calibration and distortion model.
+ * @param max_mag Faintest magnitude to include.
+ * @param margin_pixels Guard margin in pixels from the sensor border.
+ * @return std::vector<ImageStar> Projected stars sorted by brightness.
+ */
 std::vector<ImageStar> StarCatalog::project_visible_stars(
     const Quaternion& attitude,
     const CameraModel& camera,
@@ -122,6 +140,11 @@ std::vector<ImageStar> StarCatalog::project_visible_stars(
     return visible;
 }
 
+/**
+ * @brief Searches for a catalog star by its unique ID.
+ * @param id Unique star identifier (e.g., Hipparcos HIP number).
+ * @return const Star* Pointer to Star if found, nullptr otherwise.
+ */
 const Star* StarCatalog::find_star(uint64_t id) const {
     for (const auto& star : stars_) {
         if (star.id == id) {

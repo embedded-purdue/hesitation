@@ -93,6 +93,7 @@ struct Star {
      * @param id Unique catalog ID.
      * @param v 3D direction vector.
      * @param mag Apparent visual magnitude.
+     * @return Star Reconstructed star object with right ascension and declination.
      */
     static Star from_unit_vector(uint64_t id, const Vector3& v, double mag = 0.0) {
         Vector3 u = v.normalized();
@@ -108,6 +109,7 @@ struct Star {
      * @brief Computes relative stellar photometric flux (radiant intensity relative to magnitude 0).
      * @details
      * Pogson's relation: Flux = 10^(-0.4 * magnitude).
+     * @return double Relative photometric radiant flux.
      */
     double brightness() const {
         return std::pow(10.0, -0.4 * magnitude);

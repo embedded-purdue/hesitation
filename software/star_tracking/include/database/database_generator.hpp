@@ -119,10 +119,16 @@ public:
         const CameraModel& camera
     ) const;
 
-    /// Read-only access to generator configuration.
+    /**
+     * @brief Read-only access to generator configuration.
+     * @return const DatabaseGeneratorConfig& Reference to current configuration.
+     */
     const DatabaseGeneratorConfig& config() const { return config_; }
 
-    /// Updates generator configuration.
+    /**
+     * @brief Updates generator configuration.
+     * @param config New configuration settings to apply.
+     */
     void set_config(const DatabaseGeneratorConfig& config) { config_ = config; }
 
 private:

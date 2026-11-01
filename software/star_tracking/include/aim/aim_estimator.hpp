@@ -142,16 +142,28 @@ public:
         const Quaternion& coarse_attitude
     );
 
-    /// Read-only access to AIM configuration.
+    /**
+     * @brief Read-only access to AIM configuration.
+     * @return const AIMConfig& Reference to current configuration settings.
+     */
     const AIMConfig& config() const { return config_; }
 
-    /// Updates AIM configuration.
+    /**
+     * @brief Updates AIM configuration parameters.
+     * @param config New configuration settings to apply.
+     */
     void set_config(const AIMConfig& config) { config_ = config; }
 
-    /// Read-only access to camera model.
+    /**
+     * @brief Read-only access to camera model.
+     * @return const CameraModel& Reference to intrinsic camera model.
+     */
     const CameraModel& camera() const { return camera_; }
 
-    /// Updates camera model.
+    /**
+     * @brief Updates camera model.
+     * @param camera New camera model to apply.
+     */
     void set_camera(const CameraModel& camera) { camera_ = camera; }
 
 private:

@@ -74,13 +74,22 @@ public:
         stars_.push_back(star);
     }
 
-    /// Read-only access to the list of catalog stars.
+    /**
+     * @brief Read-only access to the list of catalog stars.
+     * @return const std::vector<Star>& Reference to internal vector of stars.
+     */
     const std::vector<Star>& stars() const { return stars_; }
 
-    /// Returns the number of stars currently loaded in the catalog.
+    /**
+     * @brief Returns the number of stars currently loaded in the catalog.
+     * @return size_t Count of loaded stars.
+     */
     size_t size() const { return stars_.size(); }
 
-    /// Checks if the catalog is empty.
+    /**
+     * @brief Checks if the catalog is empty.
+     * @return true if no stars are loaded, false otherwise.
+     */
     bool empty() const { return stars_.empty(); }
 
     /**

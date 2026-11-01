@@ -18,6 +18,11 @@
 
 namespace star_tracker {
 
+/**
+ * @brief Computes Delabie centroid features from an arbitrary triplet of 3 image stars.
+ * @param triplet Vector containing exactly 3 ImageStar objects.
+ * @return CentroidFeatures Invariant geometric features structure.
+ */
 CentroidFeatures CentroidFeatures::compute(const std::vector<ImageStar>& triplet) {
     CentroidFeatures feat;
     if (triplet.size() < 3) {

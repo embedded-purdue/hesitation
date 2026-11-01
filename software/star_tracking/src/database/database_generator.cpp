@@ -21,6 +21,12 @@
 
 namespace star_tracker {
 
+/**
+ * @brief Generates N unit vectors covering S^2 using the specified distribution method.
+ * @param num_points Total number of points.
+ * @param method Distribution algorithm (Fibonacci spiral or Leopardi EQ).
+ * @return std::vector<Vector3> Vector of normalized 3D points on unit sphere.
+ */
 std::vector<Vector3> DatabaseGenerator::generate_sphere_points(
     uint32_t num_points,
     SphereDistributionMethod method
@@ -103,6 +109,12 @@ std::vector<Vector3> DatabaseGenerator::generate_sphere_points(
     return points;
 }
 
+/**
+ * @brief Generates a complete reference database from an astronomical star catalog.
+ * @param catalog Astronomical star catalog.
+ * @param camera Target camera intrinsic model and field of view.
+ * @return ReferenceDatabase Generated reference database populated with reference images.
+ */
 ReferenceDatabase DatabaseGenerator::generate(
     const StarCatalog& catalog,
     const CameraModel& camera

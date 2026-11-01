@@ -23,6 +23,12 @@ namespace star_tracker {
 // Magic header bytes identifying the binary database file format: "STRKDB01"
 static const char MAGIC[8] = {'S', 'T', 'R', 'K', 'D', 'B', '0', '1'};
 
+/**
+ * @brief Serializes the database to a compact binary file on disk.
+ * @param filepath Destination binary file path.
+ * @param meta Associated database configuration metadata.
+ * @return true if successfully written, false on I/O error.
+ */
 bool ReferenceDatabase::save_binary(const std::string& filepath, const DatabaseMetadata& meta) const {
     std::ofstream out(filepath, std::ios::binary);
     if (!out.is_open()) return false;
@@ -93,6 +99,12 @@ bool ReferenceDatabase::save_binary(const std::string& filepath, const DatabaseM
     return out.good();
 }
 
+/**
+ * @brief Deserializes the database from a compact binary file.
+ * @param filepath Source binary file path.
+ * @param meta Optional pointer to receive deserialized metadata.
+ * @return true if successfully loaded, false on file not found, bad magic, or format mismatch.
+ */
 bool ReferenceDatabase::load_binary(const std::string& filepath, DatabaseMetadata* meta) {
     std::ifstream in(filepath, std::ios::binary);
     if (!in.is_open()) {
@@ -191,6 +203,12 @@ bool ReferenceDatabase::load_binary(const std::string& filepath, DatabaseMetadat
     return in.good() || in.eof();
 }
 
+/**
+ * @brief Exports database metadata to a JSON file.
+ * @param filepath Output JSON path.
+ * @param meta Metadata to export.
+ * @return true if successful, false on I/O error.
+ */
 bool ReferenceDatabase::save_metadata_json(const std::string& filepath, const DatabaseMetadata& meta) const {
     std::ofstream out(filepath);
     if (!out.is_open()) return false;
@@ -212,6 +230,12 @@ bool ReferenceDatabase::save_metadata_json(const std::string& filepath, const Da
     return out.good();
 }
 
+/**
+ * @brief Ingests database metadata from a JSON file.
+ * @param filepath Source JSON path.
+ * @param meta Struct to populate.
+ * @return true if successful, false on error.
+ */
 bool ReferenceDatabase::load_metadata_json(const std::string& filepath, DatabaseMetadata& meta) const {
     std::ifstream in(filepath);
     if (!in.is_open()) return false;
@@ -243,6 +267,13 @@ bool ReferenceDatabase::load_metadata_json(const std::string& filepath, Database
     return true;
 }
 
+/**
+ * @brief Verifies optical compatibility between runtime camera and database parameters.
+ * @param camera Active runtime camera model.
+ * @param meta Loaded database metadata.
+ * @param tolerance Relative error tolerance for continuous parameters.
+ * @return true if fully compatible, false otherwise.
+ */
 bool ReferenceDatabase::is_compatible(
     const CameraModel& camera,
     const DatabaseMetadata& meta,
@@ -260,6 +291,11 @@ bool ReferenceDatabase::is_compatible(
     return true;
 }
 
+/**
+ * @brief Finds a reference image by its ID.
+ * @param id Reference image identifier.
+ * @return const ReferenceImage* Pointer to ReferenceImage if found, nullptr otherwise.
+ */
 const ReferenceImage* ReferenceDatabase::find_image(uint64_t id) const {
     for (const auto& img : images_) {
         if (img.id == id) return &img;

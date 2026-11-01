@@ -33,7 +33,10 @@
 
 using namespace star_tracker;
 
-// Helper to create synthetic realistic star catalog
+/**
+ * @brief Creates a synthetic realistic star catalog uniformly distributed on S^2.
+ * @return StarCatalog Synthetic catalog populated with test stars.
+ */
 StarCatalog create_test_catalog() {
     StarCatalog catalog;
     // Generate ~1500 bright stars uniformly distributed over the celestial sphere
@@ -64,6 +67,11 @@ StarCatalog create_test_catalog() {
 // PART 1: LOST-IN-SPACE (DELABIE ET AL. 2013 JGCD 36:2) VALIDATION
 // ============================================================================
 
+/**
+ * @brief Executes Lost-in-Space validation reproducing Delabie et al. (2013, SDT) experimental trends.
+ * @param catalog Star catalog.
+ * @param camera Camera model.
+ */
 void run_paper1_lis_validation(const StarCatalog& catalog, const CameraModel& camera) {
     std::cout << "\n"
               << "======================================================================\n"
@@ -226,6 +234,11 @@ void run_paper1_lis_validation(const StarCatalog& catalog, const CameraModel& ca
 // PART 2: AIM ATTITUDE ESTIMATION (DELABIE ET AL. 2013 JGCD 36:6) VALIDATION
 // ============================================================================
 
+/**
+ * @brief Executes AIM validation reproducing Delabie et al. (2013, AIM) benchmarks and tolerances.
+ * @param catalog Star catalog.
+ * @param camera Camera model.
+ */
 void run_paper2_aim_validation(const StarCatalog& catalog, const CameraModel& camera) {
     std::cout << "\n"
               << "======================================================================\n"
@@ -398,6 +411,10 @@ void run_paper2_aim_validation(const StarCatalog& catalog, const CameraModel& ca
     std::cout << "======================================================================\n\n";
 }
 
+/**
+ * @brief Entry point for the Monte Carlo validation executable.
+ * @return int Exit status code (0 for success).
+ */
 int main() {
     std::cout << "======================================================================\n";
     std::cout << " STAR TRACKER REPOSITORY RESEARCH PAPERS MONTE CARLO VERIFICATION\n";

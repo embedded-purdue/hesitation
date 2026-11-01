@@ -20,6 +20,12 @@
 
 namespace star_tracker {
 
+/**
+ * @brief Constructs AttitudeManager with hardware models and reference data.
+ * @param camera Camera optical geometry and distortion model.
+ * @param database Precomputed reference star image database.
+ * @param catalog Star catalog containing reference coordinates and magnitudes.
+ */
 AttitudeManager::AttitudeManager(
     const CameraModel& camera,
     const ReferenceDatabase& database,
@@ -29,6 +35,11 @@ AttitudeManager::AttitudeManager(
     catalog_(catalog),
     aim_(camera) {}
 
+/**
+ * @brief Searches for the database reference image geometrically closest to an attitude.
+ * @param att Query attitude quaternion.
+ * @return const ReferenceImage* Pointer to closest reference image, or nullptr if database is empty.
+ */
 const ReferenceImage* AttitudeManager::find_closest_reference(const Quaternion& att) const {
     const ReferenceImage* best = nullptr;
     double min_dist = 1e9;
@@ -43,6 +54,11 @@ const ReferenceImage* AttitudeManager::find_closest_reference(const Quaternion& 
     return best;
 }
 
+/**
+ * @brief Processes a list of pre-extracted star centroids directly.
+ * @param detected_stars List of 2D star centroids.
+ * @return AttitudeEstimate Estimated attitude solution.
+ */
 AttitudeEstimate AttitudeManager::process_stars(const std::vector<ImageStar>& detected_stars) {
     // -------------------------------------------------------------------------
     // Mode 1: ACQUISITION / RECOVERY (Lost-in-Space)
@@ -141,6 +157,11 @@ AttitudeEstimate AttitudeManager::process_stars(const std::vector<ImageStar>& de
     return current_estimate_;
 }
 
+/**
+ * @brief Processes a raw incoming camera image frame.
+ * @param image Camera image buffer.
+ * @return AttitudeEstimate Estimated attitude solution.
+ */
 AttitudeEstimate AttitudeManager::process_frame(const Image& image) {
     std::vector<ImageStar> stars = detector_.detect_stars(image, camera_);
     return process_stars(stars);

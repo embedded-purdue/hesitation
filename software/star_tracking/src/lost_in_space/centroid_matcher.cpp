@@ -19,6 +19,12 @@
 
 namespace star_tracker {
 
+/**
+ * @brief Computes 2D rigid transformation mapping reference features to camera features.
+ * @param cam_features Triplet centroid features extracted from camera image.
+ * @param ref_features Precomputed triplet centroid features from database image.
+ * @return Alignment Transformation parameters.
+ */
 Alignment CentroidMatcher::compute_alignment(
     const CentroidFeatures& cam_features,
     const CentroidFeatures& ref_features
@@ -56,6 +62,12 @@ Alignment CentroidMatcher::compute_alignment(
     return align_result;
 }
 
+/**
+ * @brief Searches combinations among the brightest camera stars to find an alignment matching reference.
+ * @param camera_stars Detected camera stars sorted by brightness.
+ * @param reference Target database reference image.
+ * @return Alignment Computed alignment if match found, invalid Alignment otherwise.
+ */
 Alignment CentroidMatcher::align(
     const std::vector<ImageStar>& camera_stars,
     const ReferenceImage& reference

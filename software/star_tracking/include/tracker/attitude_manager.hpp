@@ -79,6 +79,8 @@ enum class TrackerMode {
 
 /**
  * @brief Converts TrackerMode enum to string representation for logging and telemetry.
+ * @param mode Operational tracker mode.
+ * @return const char* String representation of the mode name.
  */
 inline const char* to_string(TrackerMode mode) {
     switch (mode) {
@@ -127,10 +129,16 @@ public:
      */
     AttitudeEstimate process_stars(const std::vector<ImageStar>& detected_stars);
 
-    /// Current operational mode of the state machine.
+    /**
+     * @brief Current operational mode of the state machine.
+     * @return TrackerMode Active operational mode (ACQUISITION, TRACKING, or RECOVERY).
+     */
     TrackerMode mode() const { return mode_; }
 
-    /// Most recent attitude estimate.
+    /**
+     * @brief Most recent attitude estimate.
+     * @return const AttitudeEstimate& Reference to latest attitude telemetry.
+     */
     const AttitudeEstimate& current_estimate() const { return current_estimate_; }
 
     /**
@@ -142,25 +150,48 @@ public:
         current_ref_image_ = nullptr;
     }
 
-    /// Access to star detection submodule for parameter tuning.
+    /**
+     * @brief Access to star detection submodule for parameter tuning.
+     * @return StarDetector& Mutable reference to star detector.
+     */
     StarDetector& detector() { return detector_; }
 
-    /// Access to lost-in-space matcher for parameter tuning.
+    /**
+     * @brief Access to lost-in-space matcher for parameter tuning.
+     * @return LostInSpaceMatcher& Mutable reference to LIS matcher.
+     */
     LostInSpaceMatcher& lost_in_space() { return lost_in_space_; }
 
-    /// Access to AIM estimator for parameter tuning.
+    /**
+     * @brief Access to AIM estimator for parameter tuning.
+     * @return AIMEstimator& Mutable reference to AIM estimator.
+     */
     AIMEstimator& aim() { return aim_; }
 
-    /// Access to camera model.
+    /**
+     * @brief Access to camera model.
+     * @return const CameraModel& Reference to intrinsic camera model.
+     */
     const CameraModel& camera() const { return camera_; }
 
-    /// Access to catalog.
+    /**
+     * @brief Access to catalog.
+     * @return const StarCatalog& Reference to star catalog.
+     */
     const StarCatalog& catalog() const { return catalog_; }
 
-    /// Access to reference database.
+    /**
+     * @brief Access to reference database.
+     * @return const ReferenceDatabase& Reference to precomputed reference database.
+     */
     const ReferenceDatabase& database() const { return database_; }
 
 private:
+    /**
+     * @brief Searches for the database reference image geometrically closest to an attitude.
+     * @param att Query attitude quaternion.
+     * @return const ReferenceImage* Pointer to closest reference image, or nullptr if database is empty.
+     */
     const ReferenceImage* find_closest_reference(const Quaternion& att) const;
 
     CameraModel camera_;

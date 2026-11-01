@@ -19,6 +19,12 @@
 
 namespace star_tracker {
 
+/**
+ * @brief Executes star detection pipeline on an incoming image frame.
+ * @param image Input grayscale image buffer.
+ * @param camera Camera geometric bounds and intrinsic model.
+ * @return std::vector<ImageStar> List of detected stars sorted by brightness descending.
+ */
 std::vector<ImageStar> StarDetector::detect_stars(
     const Image& image,
     const CameraModel& camera

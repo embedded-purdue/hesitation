@@ -58,24 +58,41 @@ public:
     Image(int width, int height, uint8_t initial_val = 0)
         : width_(width), height_(height), data_(width * height, initial_val) {}
 
-    /// Returns horizontal resolution in pixels.
+    /**
+     * @brief Returns horizontal resolution in pixels.
+     * @return int Image width in pixels.
+     */
     int width() const { return width_; }
 
-    /// Returns vertical resolution in pixels.
+    /**
+     * @brief Returns vertical resolution in pixels.
+     * @return int Image height in pixels.
+     */
     int height() const { return height_; }
 
-    /// Returns total number of pixels (width * height).
+    /**
+     * @brief Returns total number of pixels (width * height).
+     * @return size_t Total pixel buffer element count.
+     */
     size_t size() const { return data_.size(); }
 
-    /// Read-only pointer to underlying contiguous byte buffer.
+    /**
+     * @brief Read-only pointer to underlying contiguous byte buffer.
+     * @return const uint8_t* Pointer to raw pixel buffer.
+     */
     const uint8_t* data() const { return data_.data(); }
 
-    /// Mutable pointer to underlying contiguous byte buffer (useful for hardware DMA buffer copy).
+    /**
+     * @brief Mutable pointer to underlying contiguous byte buffer (useful for hardware DMA buffer copy).
+     * @return uint8_t* Pointer to raw pixel buffer.
+     */
     uint8_t* data() { return data_.data(); }
 
     /**
      * @brief Read-only pixel access with bounds checking.
-     * Returns 0 if coordinates lie outside image boundaries.
+     * @param x Horizontal pixel index [0, width-1].
+     * @param y Vertical pixel index [0, height-1].
+     * @return uint8_t Pixel intensity value, or 0 if out of bounds.
      */
     uint8_t at(int x, int y) const {
         if (x < 0 || x >= width_ || y < 0 || y >= height_) return 0;
@@ -84,6 +101,9 @@ public:
 
     /**
      * @brief Mutable pixel reference without bounds check for high-performance inner loops.
+     * @param x Horizontal pixel index [0, width-1].
+     * @param y Vertical pixel index [0, height-1].
+     * @return uint8_t& Reference to pixel intensity value.
      */
     uint8_t& at(int x, int y) {
         return data_[y * width_ + x];

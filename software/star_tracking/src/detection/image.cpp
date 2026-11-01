@@ -25,6 +25,11 @@
 
 namespace star_tracker {
 
+/**
+ * @brief Saves image to disk as a binary PGM (P5 format) file.
+ * @param filepath Target file path.
+ * @return true if successful, false on I/O error.
+ */
 bool Image::save_pgm(const std::string& filepath) const {
     std::ofstream out(filepath, std::ios::binary);
     if (!out.is_open()) return false;
@@ -35,6 +40,11 @@ bool Image::save_pgm(const std::string& filepath) const {
     return out.good();
 }
 
+/**
+ * @brief Loads image from a binary PGM (P5 format) file.
+ * @param filepath Source file path.
+ * @return true if successful, false on I/O or parsing error.
+ */
 bool Image::load_pgm(const std::string& filepath) {
     std::ifstream in(filepath, std::ios::binary);
     if (!in.is_open()) return false;
@@ -67,6 +77,16 @@ bool Image::load_pgm(const std::string& filepath) {
     return in.good();
 }
 
+/**
+ * @brief Renders a synthetic camera image containing simulated star spots with noise.
+ * @param width Image width in pixels.
+ * @param height Image height in pixels.
+ * @param stars Vector of star coordinates and brightnesses.
+ * @param psf_sigma Gaussian PSF radius standard deviation in pixels.
+ * @param background_noise_sigma Readout/shot noise standard deviation in counts.
+ * @param background_bias Constant dark level offset.
+ * @return Image Synthesized camera frame.
+ */
 Image Image::render_star_field(
     int width,
     int height,

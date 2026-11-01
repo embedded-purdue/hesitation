@@ -20,9 +20,20 @@
 
 namespace star_tracker {
 
+/**
+ * @brief Allocates distance buffer for given dimensions.
+ * @param width Sensor horizontal resolution.
+ * @param height Sensor vertical resolution.
+ */
 DistanceTransform::DistanceTransform(int width, int height)
     : width_(width), height_(height), distances_(width * height, INF_DIST) {}
 
+/**
+ * @brief Computes exact squared Euclidean distance transform in O(W * H) time.
+ * @param stars List of detected star centroids.
+ * @param width Image width in pixels.
+ * @param height Image height in pixels.
+ */
 void DistanceTransform::compute(
     const std::vector<ImageStar>& stars,
     int width,
@@ -141,6 +152,12 @@ void DistanceTransform::compute(
     }
 }
 
+/**
+ * @brief Reference brute-force computation for test suite validation.
+ * @param stars Star centroids.
+ * @param width Image width.
+ * @param height Image height.
+ */
 void DistanceTransform::compute_brute_force(
     const std::vector<ImageStar>& stars,
     int width,

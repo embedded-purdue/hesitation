@@ -95,6 +95,7 @@ struct CameraModel {
      * @param hfov_rad Horizontal field of view in radians.
      * @param vfov_rad Vertical field of view in radians.
      * @param dist Lens distortion model (default: distortion-free).
+     * @return CameraModel Constructed CameraModel instance.
      */
     static CameraModel from_fov(int width, int height, double hfov_rad, double vfov_rad,
                                 DistortionModel dist = DistortionModel()) {

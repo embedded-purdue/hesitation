@@ -23,6 +23,14 @@
 
 namespace star_tracker {
 
+/**
+ * @brief Executes identification returning rich telemetry and diagnostic match structures.
+ * @param camera_stars Detected camera star centroids.
+ * @param camera Camera model.
+ * @param database Reference database.
+ * @param dt Distance transform lookup map.
+ * @return CandidateMatch Diagnostics and best candidate reference match.
+ */
 CandidateMatch LostInSpaceMatcher::identify_detailed(
     const std::vector<ImageStar>& camera_stars,
     const CameraModel& camera,
@@ -168,6 +176,14 @@ CandidateMatch LostInSpaceMatcher::identify_detailed(
     return best_match;
 }
 
+/**
+ * @brief Executes autonomous Lost-in-Space identification to determine spacecraft attitude.
+ * @param camera_stars Detected camera star centroids.
+ * @param camera Camera geometric and optical intrinsic model.
+ * @param database Precomputed reference star database.
+ * @param dt Precomputed exact Euclidean distance transform map of the camera frame.
+ * @return AttitudeEstimate Estimated attitude solution.
+ */
 AttitudeEstimate LostInSpaceMatcher::identify(
     const std::vector<ImageStar>& camera_stars,
     const CameraModel& camera,

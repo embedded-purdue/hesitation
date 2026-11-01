@@ -50,6 +50,10 @@
 
 using namespace star_tracker;
 
+/**
+ * @brief Main entry point executing dual-mode star tracker simulation pipeline.
+ * @return int Exit code (0 on success, non-zero on failure).
+ */
 int main() {
   std::cout << "========================================================\n";
   std::cout << "Dual-Mode Star Tracker (Lost-in-Space + AIM Tracking)\n";

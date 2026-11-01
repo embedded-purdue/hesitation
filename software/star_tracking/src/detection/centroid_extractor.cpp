@@ -18,6 +18,12 @@
 
 namespace star_tracker {
 
+/**
+ * @brief Extracts subpixel centroid (x_c, y_c) using brightness-weighted center-of-gravity (CoG).
+ * @param region List of connected pixels composing the star spot.
+ * @param background_threshold Estimated local or global background noise floor.
+ * @return ImageStar Extracted star with subpixel centroid coordinates and flux.
+ */
 ImageStar CentroidExtractor::extract_centroid(
     const std::vector<PixelCoord>& region,
     double background_threshold
