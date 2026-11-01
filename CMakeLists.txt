@@ -98,6 +98,65 @@ target_link_libraries(implot_lib
         imgui_lib
 )
 
+# ------------------------------------------------------------------------------
+# ZeroMQ (libzmq + cppzmq)
+# ------------------------------------------------------------------------------
+
+# Disable unnecessary ZeroMQ features
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(WITH_PERF_TOOL OFF CACHE BOOL "" FORCE)
+set(WITH_DOC OFF CACHE BOOL "" FORCE)
+
+# ZeroMQ core library
+FetchContent_Declare(
+    libzmq
+    GIT_REPOSITORY https://github.com/zeromq/libzmq.git
+    GIT_TAG v4.3.5
+    GIT_SHALLOW TRUE
+)
+
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+
+# Disable dependency tests
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(CPPZMQ_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+
+# ZeroMQ Windows configuration
+if(WIN32 AND MINGW)
+    set(ZMQ_HAVE_WINDOWS ON CACHE BOOL "" FORCE)
+    set(ZMQ_HAVE_IPC OFF CACHE BOOL "" FORCE)
+endif()
+
+FetchContent_MakeAvailable(libzmq)
+
+# C++ bindings
+FetchContent_Declare(
+    cppzmq
+    GIT_REPOSITORY https://github.com/zeromq/cppzmq.git
+    GIT_TAG v4.10.0
+    GIT_SHALLOW TRUE
+)
+
+FetchContent_MakeAvailable(cppzmq)
+
+# ==============================================================================
+# Protobuf
+# ==============================================================================
+
+set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    protobuf
+    GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
+    GIT_TAG v33.0
+    GIT_SHALLOW TRUE
+    GIT_SUBMODULES_RECURSE TRUE
+)
+
+FetchContent_MakeAvailable(protobuf)
+include("${protobuf_SOURCE_DIR}/cmake/protobuf-generate.cmake")
+
 # ==============================================================================
 # SYSTEM DEPENDENCIES
 # ==============================================================================
@@ -132,10 +191,62 @@ add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCES}
 )
 
+
+# ==============================================================================
+# MESSAGING LIBRARY
+# ==============================================================================
+
+set(MESSAGING_DIR "${CMAKE_CURRENT_SOURCE_DIR}/messaging")
+
+add_library(messaging STATIC
+    # Core
+    ${MESSAGING_DIR}/core/MessageFactory.cpp
+    ${MESSAGING_DIR}/core/Sender.cpp
+    ${MESSAGING_DIR}/core/Receiver.cpp
+    ${MESSAGING_DIR}/core/Channel.cpp
+    ${MESSAGING_DIR}/channels/environment/EnvironmentChannel.cpp
+
+    # Environment channel
+    ${MESSAGING_DIR}/channels/environment/EnvironmentMessages.cpp
+)
+
+# Generate C++ code from all Protobuf definitions.
+protobuf_generate(
+    TARGET messaging
+    LANGUAGE cpp
+    PROTOS
+        ${MESSAGING_DIR}/proto/messaging.proto
+        ${MESSAGING_DIR}/proto/environment.proto
+    IMPORT_DIRS
+        ${MESSAGING_DIR}/proto
+        ${protobuf_SOURCE_DIR}/src
+    APPEND_PATH
+)
+
+target_include_directories(messaging
+    PUBLIC
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${MESSAGING_DIR}/core
+        ${MESSAGING_DIR}/proto
+        ${MESSAGING_DIR}/channels/environment
+)
+
+target_link_libraries(messaging
+    PUBLIC
+        cppzmq
+        libzmq
+        protobuf::libprotobuf
+)
+
+# ==============================================================================
+# APPLICATION
+# ==============================================================================
+
 target_include_directories(${PROJECT_NAME}
     PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/"
-        ${CMAKE_CURRENT_SOURCE_DIR}/app/src
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/app/src"
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -143,6 +254,7 @@ target_link_libraries(${PROJECT_NAME}
         imgui_lib
         implot_lib
         OpenGL::GL
+        messaging
         nfd
 )
 

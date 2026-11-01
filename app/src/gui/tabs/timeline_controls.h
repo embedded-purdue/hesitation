@@ -10,6 +10,9 @@
 #include "gui/tab_registry.h"
 #include "imgui.h"
 
+#include "messaging/channels/environment/EnvironmentChannel.h"
+#include "messaging/channels/environment/EnvironmentMessages.h"
+
 class TimelineControlsTab : public ITab {
   public:
     explicit TimelineControlsTab(std::string instanceId = "0")
@@ -54,16 +57,37 @@ class TimelineControlsTab : public ITab {
         // Transport controls
         const float buttonHeight = ImGui::GetFrameHeight();
 
+        // Start / Stop.
         if (ImGui::Button(isRunning ? "Stop" : "Start", ImVec2(0.0f, buttonHeight))) {
-            isRunning = !isRunning;
+
+            auto message = isRunning
+                               ? Hesitation::Environment::EnvironmentMessages::SimulationStop()
+                               : Hesitation::Environment::EnvironmentMessages::SimulationStart();
+
+            if (Hesitation::Environment::EnvironmentChannel::Send(message)) {
+                isRunning = !isRunning;
+                std::cout << "[GUI] " << (isRunning ? "Start" : "Stop") << " command sent\n";
+            } else {
+                std::cerr << "[GUI] Failed to send transport command\n";
+            }
         }
 
         ImGui::SameLine();
 
+        // Reset
         if (ImGui::Button("Reset", ImVec2(0.0f, buttonHeight))) {
-            currentEpoch = 1700000000.0;
-            runningTime  = 0.0f;
-            isRunning    = false;
+
+            auto message = Hesitation::Environment::EnvironmentMessages::SimulationReset();
+
+            if (Hesitation::Environment::EnvironmentChannel::Send(message)) {
+                currentEpoch = 1700000000.0;
+                runningTime  = 0.0f;
+                isRunning    = false;
+
+                std::cout << "[GUI] Reset command sent\n";
+            } else {
+                std::cerr << "[GUI] Failed to send reset command\n";
+            }
         }
     }
 };
