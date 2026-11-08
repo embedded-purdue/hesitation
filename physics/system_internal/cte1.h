@@ -5,7 +5,6 @@ struct ReactorInput {
     double p_th_cmd = 0.0; // Requested thermal power (W)
     double t_in = 0.0; // Reactor inlet temperature (K)
     double reactor_efficiency = 1.0; // Assumed command-to-thermal efficiency
-
 };
 
 struct ReactorOutput {
