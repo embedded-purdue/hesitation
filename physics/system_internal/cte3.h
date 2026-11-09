@@ -1,7 +1,6 @@
 #pragma once
 #include "../working_fluid.h"
 
-
 struct PMAD_Input{
     double p_gen = 0.00; // Power Generated (W)
     double eta_p = 0.99; // Power Management and Delivery Efficiency (%)

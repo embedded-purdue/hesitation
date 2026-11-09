@@ -4,7 +4,7 @@
 PMAD_Output simulatePMAD(const PMAD_Input& input) {
     if (input.p_gen <= 0 || input.eta_p <= 0 || input.eta_p >= 1.0) {
         throw std::invalid_argument("Invalid PMAD input");
-};
+    }
 
     PMAD_Output output;
 
