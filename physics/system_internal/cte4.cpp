@@ -4,24 +4,24 @@
 #include <vector>
 
 PropulsionOutput simulatePropulsion(const PropulsionInput& input) {
-    const double g_0 = 9.80665;
+    const double g_0 = 9.80665; // Constant used for calculations
     double total_power = 0.0;
     std::vector<double> p_need;
 
     if (input.p_propulsion < 0.0) {
-        throw std::invalid_argument("Invalid propulsion power");
+        throw std::invalid_argument("Invalid propulsion power"); // Invalid input power handling
     }
 
     for (const ThrusterInput& thruster : input.thrusters) {
         if (thruster.i_sp <= 0.0 || thruster.eta_t <= 0.0 ||
             thruster.eta_t > 1.0 || thruster.f_cmd < 0.0) {
-            throw std::invalid_argument("Invalid thruster input");
+            throw std::invalid_argument("Invalid thruster input"); // Invalid input thruster attribute handling
         }
 
-        double power = thruster.f_cmd * thruster.i_sp * g_0 / (2.0 * thruster.eta_t);
+        double power = thruster.f_cmd * thruster.i_sp * g_0 / (2.0 * thruster.eta_t); // Power per thruster calculation
 
-        p_need.push_back(power);
-        total_power += power;
+        p_need.push_back(power); // Append power
+        total_power += power; // Calculate total power needed
     }
 
     double scale = 1.0;
@@ -35,12 +35,12 @@ PropulsionOutput simulatePropulsion(const PropulsionInput& input) {
     for (size_t i = 0; i < input.thrusters.size(); i++) {
         const ThrusterInput& thruster = input.thrusters[i];
 
-        double p_sup = p_need[i] * scale;
+        double p_sup = p_need[i] * scale; // Supplied power is scaled down based on availible power
 
         double f_out_i = 2.0 * thruster.eta_t * p_sup / (g_0 * thruster.i_sp);
 
         thrust_out.thrusters.push_back(f_out_i);
-        thrust_out.p_waste += (1.0 - thruster.eta_t) * p_sup;
+        thrust_out.p_waste += (1.0 - thruster.eta_t) * p_sup; // Excess 
     }
 
     return thrust_out;
