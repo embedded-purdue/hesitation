@@ -1,39 +1,46 @@
+
 #include "cte4.h"
 #include <stdexcept>
 #include <vector>
 
-PropulsionOutput simulatePropulsion(const PropulsionInput& input){
-    double g_0 = 9.800655;
+PropulsionOutput simulatePropulsion(const PropulsionInput& input) {
+    const double g_0 = 9.80665;
     double total_power = 0.0;
-    std::vector<double> p_need = {};
-    std::vector<double> p_sup = {}; // Power supplied to each thruster (Proportional model)
-    
-    for(ThrusterInput thruster : input.thrusters){
-        double power = thruster.f_cmd * thruster.i_sp * g_0/(2 * thruster.eta_t);
+    std::vector<double> p_need;
+
+    if (input.p_propulsion < 0.0) {
+        throw std::invalid_argument("Invalid propulsion power");
+    }
+
+    for (const ThrusterInput& thruster : input.thrusters) {
+        if (thruster.i_sp <= 0.0 || thruster.eta_t <= 0.0 ||
+            thruster.eta_t > 1.0 || thruster.f_cmd < 0.0) {
+            throw std::invalid_argument("Invalid thruster input");
+        }
+
+        double power = thruster.f_cmd * thruster.i_sp * g_0 / (2.0 * thruster.eta_t);
+
         p_need.push_back(power);
         total_power += power;
     }
 
-    for (double p : p_need){
-        p /= total_power;
-        p_sup.push_back(p * input.p_propulsion);
+    double scale = 1.0;
+
+    if (total_power > input.p_propulsion) {
+        scale = input.p_propulsion / total_power;
     }
 
     PropulsionOutput thrust_out;
-    double f_out_i;
 
-    for (int i = 0; i <= input.thrusters.size(); i++){
-        if (total_power > input.p_propulsion)
-        {
-            f_out_i = 2 * input.thrusters[i].eta_t * p_sup[i]/(g_0 * input.thrusters[i].i_sp);
-        }
-        else
-        {
-            f_out_i = p_need[i];
-            thrust_out.p_waste += p_sup[i] - f_out_i;
-        }
-        
+    for (size_t i = 0; i < input.thrusters.size(); i++) {
+        const ThrusterInput& thruster = input.thrusters[i];
+
+        double p_sup = p_need[i] * scale;
+
+        double f_out_i = 2.0 * thruster.eta_t * p_sup / (g_0 * thruster.i_sp);
+
         thrust_out.thrusters.push_back(f_out_i);
+        thrust_out.p_waste += (1.0 - thruster.eta_t) * p_sup;
     }
 
     return thrust_out;
