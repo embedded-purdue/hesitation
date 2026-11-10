@@ -38,9 +38,10 @@ Message EnvironmentMessages::SimulationStop() {
                                  hesitation::environment::SimulationStop{});
 }
 
-Message EnvironmentMessages::SimulationReset() {
-    return MessageFactory::Build("environment.simulation_reset",
-                                 hesitation::environment::SimulationReset{});
+Message EnvironmentMessages::SimulationReset(
+    const hesitation::environment::SimulationReset& config) {
+
+    return MessageFactory::Build("environment.simulation_reset", config);
 }
 
 } // namespace Hesitation::Environment

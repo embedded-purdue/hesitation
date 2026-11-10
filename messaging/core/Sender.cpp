@@ -76,7 +76,7 @@ void Sender::Run(std::string endpoint, std::promise<bool> startup) {
                 continue;
             }
 
-            // Send serialized protobuf payload.
+            // Send serialized envelope.
             zmq::message_t payloadFrame(outgoing.payload.data(), outgoing.payload.size());
 
             auto payloadResult = publisher.send(payloadFrame, zmq::send_flags::none);
@@ -106,14 +106,16 @@ bool Sender::Send(const hesitation::messaging::Message& message) {
     if (message.type().empty())
         return false;
 
+    // Serialize the complete envelope.
     std::string serialized;
 
-    if (!message.SerializeToString(&serialized))
+    if (!message.SerializeToString(&serialized)) {
+        std::cerr << "[Sender] Failed to serialize message\n";
         return false;
+    }
 
     OutgoingMessage outgoing;
 
-    // Delimiter prevents prefix collisions between message types.
     outgoing.topic   = message.type() + "|";
     outgoing.payload = std::move(serialized);
 

@@ -7,7 +7,38 @@ message SimulationStart {}
 
 message SimulationStop {}
 
-message SimulationReset {}
+message SimulationReset {
+    // Run configuration
+    string run_type = 1;
+
+    // Initial epoch (UTC)
+    int32 year = 2;
+    int32 month = 3;
+    int32 day = 4;
+    int32 hour = 5;
+    int32 minute = 6;
+    double second = 7;
+
+    // Initial position (Cartesian, meters)
+    double position_x = 8;
+    double position_y = 9;
+    double position_z = 10;
+
+    // Initial velocity (Cartesian, meters/second)
+    double velocity_x = 11;
+    double velocity_y = 12;
+    double velocity_z = 13;
+
+    // Initial attitude (MRP)
+    double mrp_x = 14;
+    double mrp_y = 15;
+    double mrp_z = 16;
+
+    // Initial angular velocity (body frame, rad/s)
+    double omega_x = 17;
+    double omega_y = 18;
+    double omega_z = 19;
+}
 
 // Simulation telemetry
 message SimulationStatus {

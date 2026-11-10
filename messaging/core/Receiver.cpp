@@ -2,6 +2,8 @@
 
 #include <chrono>
 #include <iostream>
+#include <exception>
+#include <vector>
 
 namespace Hesitation::Messaging {
 
@@ -26,8 +28,7 @@ bool Receiver::Start(const std::string& endpoint) {
     if (running_)
         return true;
 
-    running_ = true;
-
+    running_      = true;
     workerThread_ = std::thread(&Receiver::Run, this, endpoint);
 
     return true;
@@ -51,13 +52,11 @@ void Receiver::Run(std::string endpoint) {
         subscriber.set(zmq::sockopt::linger, 0);
         subscriber.set(zmq::sockopt::rcvtimeo, 100);
 
-        // Subscribe to all registered message types.
         {
             std::lock_guard<std::mutex> lock(callbacksMutex_);
 
             for (const auto& [type, callbacks] : callbacks_) {
                 (void)callbacks;
-
                 subscriber.set(zmq::sockopt::subscribe, type + "|");
             }
         }
@@ -84,27 +83,25 @@ void Receiver::Run(std::string endpoint) {
             if (!payloadResult.has_value())
                 continue;
 
-            // Reject unexpected additional frames.
             if (payloadFrame.more())
                 continue;
 
             std::string topic(static_cast<const char*>(topicFrame.data()), topicFrame.size());
 
-            // Remove the topic delimiter.
             if (topic.empty() || topic.back() != '|')
                 continue;
 
             topic.pop_back();
 
+            // Deserialize the outer message envelope.
             hesitation::messaging::Message message;
 
             if (!message.ParseFromArray(payloadFrame.data(),
                                         static_cast<int>(payloadFrame.size()))) {
-                std::cerr << "[Receiver] Invalid Protobuf message\n";
+                std::cerr << "[Receiver] Failed to deserialize envelope\n";
                 continue;
             }
 
-            // Ensure the envelope matches the transport topic.
             if (message.type() != topic)
                 continue;
 
@@ -113,12 +110,14 @@ void Receiver::Run(std::string endpoint) {
             {
                 std::lock_guard<std::mutex> lock(callbacksMutex_);
 
-                const auto it = callbacks_.find(topic);
+                auto it = callbacks_.find(topic);
 
                 if (it != callbacks_.end())
                     callbacks = it->second;
             }
 
+            // Dispatch the envelope. Payload deserialization happens
+            // inside the message-specific callback.
             for (const auto& callback : callbacks) {
                 try {
                     callback(message);

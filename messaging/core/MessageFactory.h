@@ -47,6 +47,7 @@ template <typename T> void MessageFactory::Register(const std::string& type) {
 
 template <typename T>
 hesitation::messaging::Message MessageFactory::Build(const std::string& type, const T& payload) {
+
     static_assert(std::is_base_of_v<google::protobuf::Message, T>, "T must be a Protobuf message");
 
     if (!IsRegisteredInternal(type, T::descriptor())) {
@@ -59,9 +60,13 @@ hesitation::messaging::Message MessageFactory::Build(const std::string& type, co
     message.set_timestamp(GenerateTimestamp());
     message.set_type(type);
 
-    if (!message.mutable_payload()->PackFrom(payload)) {
-        throw std::runtime_error("Failed to pack Protobuf payload");
+    std::string serializedPayload;
+
+    if (!payload.SerializeToString(&serializedPayload)) {
+        throw std::runtime_error("Failed to serialize Protobuf payload");
     }
+
+    message.set_payload(std::move(serializedPayload));
 
     return message;
 }

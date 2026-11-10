@@ -22,7 +22,7 @@
 namespace fs = std::filesystem;
 
 namespace {
-constexpr const char* FONT_PATH   = "assets/fonts/Roboto.ttf";
+constexpr const char* FONT_PATH   = "app/assets/fonts/Roboto.ttf";
 constexpr const char* LAYOUTS_DIR = "layouts";
 
 // Ensure the layout directory exists

@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <string>
@@ -6,10 +5,14 @@
 #include <ctime>
 #include <cmath>
 #include <algorithm>
+#include <sstream>
+#include <iomanip>
 
 #include "../tab.h"
 #include "gui/tab_registry.h"
 #include "imgui.h"
+
+#include "../../AppData.h"
 
 class InitialStateTab : public ITab {
   public:
@@ -22,57 +25,51 @@ class InitialStateTab : public ITab {
         constexpr double DEG_TO_RAD = PI / 180.0;
         constexpr double EARTH_MU   = 3.986004418e14;
 
+        auto& config = GetApplicationData().simulationConfig;
+
         ImGui::TextDisabled("Applied on reset");
         ImGui::Spacing();
 
         // Run Type
-        static int runType     = 0;
         const char* runTypes[] = {"Regular", "Orbit Sim Test"};
+
+        int runTypeIndex = config.runType == "Orbit Sim Test" ? 1 : 0;
 
         ImGui::Text("Run Type");
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        ImGui::Combo("##RunType", &runType, runTypes, IM_ARRAYSIZE(runTypes));
+
+        if (ImGui::Combo("##RunType", &runTypeIndex, runTypes, IM_ARRAYSIZE(runTypes))) {
+            config.runType = runTypes[runTypeIndex];
+        }
 
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
 
-        // Epoch: UTC date/time stored as Unix seconds.
-        static double epoch = 1700000000.0;
-        static int year = 2023, month = 11, day = 14;
-        static int hour = 22, minute = 13, second = 20;
-        static int millisecond       = 0;
-        static bool epochInitialized = false;
-        static double lastEpoch      = 0.0;
+        // Epoch
+        std::time_t timestamp = static_cast<std::time_t>(std::floor(config.epoch));
 
-        auto epochToFields = [&]() {
-            const double whole          = std::floor(epoch);
-            const std::time_t timestamp = static_cast<std::time_t>(whole);
-            const std::tm* result       = std::gmtime(&timestamp);
+        const std::tm* utcTime = std::gmtime(&timestamp);
 
-            if (!result)
-                return;
+        static int year        = 2023;
+        static int month       = 11;
+        static int day         = 14;
+        static int hour        = 22;
+        static int minute      = 13;
+        static int second      = 20;
+        static int millisecond = 0;
 
-            year   = result->tm_year + 1900;
-            month  = result->tm_mon + 1;
-            day    = result->tm_mday;
-            hour   = result->tm_hour;
-            minute = result->tm_min;
-            second = result->tm_sec;
+        if (utcTime) {
+            year   = utcTime->tm_year + 1900;
+            month  = utcTime->tm_mon + 1;
+            day    = utcTime->tm_mday;
+            hour   = utcTime->tm_hour;
+            minute = utcTime->tm_min;
+            second = utcTime->tm_sec;
 
-            millisecond = static_cast<int>(std::round((epoch - whole) * 1000.0));
-
-            if (millisecond >= 1000) {
-                millisecond = 0;
-                epoch += 1.0;
-            }
-
-            lastEpoch        = epoch;
-            epochInitialized = true;
-        };
-
-        if (!epochInitialized || epoch != lastEpoch)
-            epochToFields();
+            millisecond =
+                static_cast<int>(std::round((config.epoch - std::floor(config.epoch)) * 1000.0));
+        }
 
         ImGui::Text("Epoch");
         ImGui::TextDisabled("UTC date and time | Unix seconds");
@@ -80,7 +77,8 @@ class InitialStateTab : public ITab {
 
         const float spacing   = ImGui::GetStyle().ItemSpacing.x;
         const float available = ImGui::GetContentRegionAvail().x;
-        bool epochEdited      = false;
+
+        bool epochEdited = false;
 
         const float dateWidth = std::max(1.0f, (available - spacing * 2.0f) / 3.0f);
 
@@ -157,8 +155,7 @@ class InitialStateTab : public ITab {
             const std::time_t t = timegm(&edited);
 #endif
 
-            epoch     = static_cast<double>(t) + static_cast<double>(millisecond) / 1000.0;
-            lastEpoch = epoch;
+            config.epoch = static_cast<double>(t) + static_cast<double>(millisecond) / 1000.0;
         }
 
         // Translational State
@@ -166,30 +163,16 @@ class InitialStateTab : public ITab {
         ImGui::Separator();
         ImGui::Spacing();
 
-        static int stateMode     = 0;
         const char* stateModes[] = {"Orbital Elements", "Cartesian Position / Velocity"};
 
         ImGui::Text("Translational State");
         ImGui::TextDisabled("Orbital elements are converted to inertial state vectors");
         ImGui::Spacing();
 
-        // Fit the dropdown to the currently available width.
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        ImGui::Combo("##InputMode", &stateMode, stateModes, IM_ARRAYSIZE(stateModes));
+        ImGui::Combo("##InputMode", &config.stateMode, stateModes, IM_ARRAYSIZE(stateModes));
 
-        // Inertial Cartesian state: meters and meters/second.
-        static double position[3] = {0.0, 0.0, 0.0};
-        static double velocity[3] = {0.0, 0.0, 0.0};
-
-        // Classical orbital elements.
-        static double semiMajorAxis = 6978000.0;
-        static double eccentricity  = 0.01;
-        static double inclination   = 63.3;
-        static double raan          = 88.2;
-        static double argPeriapsis  = 347.8;
-        static double trueAnomaly   = 135.3;
-
-        if (stateMode == 0) {
+        if (config.stateMode == 0) {
             ImGui::Spacing();
             ImGui::Text("Classical Orbital Elements");
             ImGui::TextDisabled("Semi-major axis in m | Angles in degrees");
@@ -205,16 +188,18 @@ class InitialStateTab : public ITab {
             ImGui::TextUnformatted("Inclination (deg)");
 
             ImGui::SetNextItemWidth(w3);
-            ImGui::InputScalar("##COEA", ImGuiDataType_Double, &semiMajorAxis, nullptr, nullptr,
-                               "%.3f");
+            ImGui::InputScalar("##COEA", ImGuiDataType_Double, &config.semiMajorAxis, nullptr,
+                               nullptr, "%.3f");
+
             ImGui::SameLine(0.0f, spacing);
             ImGui::SetNextItemWidth(w3);
-            ImGui::InputScalar("##COEE", ImGuiDataType_Double, &eccentricity, nullptr, nullptr,
-                               "%.8f");
+            ImGui::InputScalar("##COEE", ImGuiDataType_Double, &config.eccentricity, nullptr,
+                               nullptr, "%.8f");
+
             ImGui::SameLine(0.0f, spacing);
             ImGui::SetNextItemWidth(w3);
-            ImGui::InputScalar("##COEI", ImGuiDataType_Double, &inclination, nullptr, nullptr,
-                               "%.5f");
+            ImGui::InputScalar("##COEI", ImGuiDataType_Double, &config.inclination, nullptr,
+                               nullptr, "%.5f");
 
             ImGui::Spacing();
 
@@ -225,28 +210,33 @@ class InitialStateTab : public ITab {
             ImGui::TextUnformatted("True anomaly (deg)");
 
             ImGui::SetNextItemWidth(w3);
-            ImGui::InputScalar("##COERAAN", ImGuiDataType_Double, &raan, nullptr, nullptr, "%.5f");
+            ImGui::InputScalar("##COERAAN", ImGuiDataType_Double, &config.raan, nullptr, nullptr,
+                               "%.5f");
+
             ImGui::SameLine(0.0f, spacing);
             ImGui::SetNextItemWidth(w3);
-            ImGui::InputScalar("##COEArgPeri", ImGuiDataType_Double, &argPeriapsis, nullptr,
-                               nullptr, "%.5f");
-            ImGui::SameLine(0.0f, spacing);
-            ImGui::SetNextItemWidth(w3);
-            ImGui::InputScalar("##COETrueAnomaly", ImGuiDataType_Double, &trueAnomaly, nullptr,
+            ImGui::InputScalar("##COEArgPeri", ImGuiDataType_Double, &config.argPeriapsis, nullptr,
                                nullptr, "%.5f");
 
-            // Convert elliptical Earth-centered COEs to inertial state.
-            const bool validOrbit =
-                semiMajorAxis > 0.0 && eccentricity >= 0.0 && eccentricity < 1.0;
+            ImGui::SameLine(0.0f, spacing);
+            ImGui::SetNextItemWidth(w3);
+            ImGui::InputScalar("##COETrueAnomaly", ImGuiDataType_Double, &config.trueAnomaly,
+                               nullptr, nullptr, "%.5f");
+
+            // Convert COEs to inertial Cartesian state.
+            const bool validOrbit = config.semiMajorAxis > 0.0 && config.eccentricity >= 0.0 &&
+                                    config.eccentricity < 1.0;
 
             if (validOrbit) {
-                const double inc = inclination * DEG_TO_RAD;
-                const double O   = raan * DEG_TO_RAD;
-                const double w   = argPeriapsis * DEG_TO_RAD;
-                const double f   = trueAnomaly * DEG_TO_RAD;
+                const double inc = config.inclination * DEG_TO_RAD;
+                const double O   = config.raan * DEG_TO_RAD;
+                const double w   = config.argPeriapsis * DEG_TO_RAD;
+                const double f   = config.trueAnomaly * DEG_TO_RAD;
 
-                const double p     = semiMajorAxis * (1.0 - eccentricity * eccentricity);
-                const double denom = 1.0 + eccentricity * std::cos(f);
+                const double p =
+                    config.semiMajorAxis * (1.0 - config.eccentricity * config.eccentricity);
+
+                const double denom = 1.0 + config.eccentricity * std::cos(f);
 
                 if (p > 0.0 && denom > 0.0) {
                     const double radius     = p / denom;
@@ -254,8 +244,9 @@ class InitialStateTab : public ITab {
 
                     const double rpX = radius * std::cos(f);
                     const double rpY = radius * std::sin(f);
+
                     const double vpX = -speedScale * std::sin(f);
-                    const double vpY = speedScale * (eccentricity + std::cos(f));
+                    const double vpY = speedScale * (config.eccentricity + std::cos(f));
 
                     const double cO = std::cos(O);
                     const double sO = std::sin(O);
@@ -271,13 +262,13 @@ class InitialStateTab : public ITab {
                     const double r31 = sw * si;
                     const double r32 = cw * si;
 
-                    position[0] = r11 * rpX + r12 * rpY;
-                    position[1] = r21 * rpX + r22 * rpY;
-                    position[2] = r31 * rpX + r32 * rpY;
+                    config.position[0] = r11 * rpX + r12 * rpY;
+                    config.position[1] = r21 * rpX + r22 * rpY;
+                    config.position[2] = r31 * rpX + r32 * rpY;
 
-                    velocity[0] = r11 * vpX + r12 * vpY;
-                    velocity[1] = r21 * vpX + r22 * vpY;
-                    velocity[2] = r31 * vpX + r32 * vpY;
+                    config.velocity[0] = r11 * vpX + r12 * vpY;
+                    config.velocity[1] = r21 * vpX + r22 * vpY;
+                    config.velocity[2] = r31 * vpX + r32 * vpY;
                 }
             }
         } else {
@@ -286,65 +277,55 @@ class InitialStateTab : public ITab {
             ImGui::Text("Position");
             ImGui::TextDisabled("Inertial frame N | meters (m)");
             ImGui::Spacing();
-            ImGui::Spacing();
 
             const float w3 =
                 std::max(1.0f, (ImGui::GetContentRegionAvail().x - spacing * 2.0f) / 3.0f);
 
-            ImGui::TextUnformatted("X (m)");
-            ImGui::SameLine(w3 + spacing);
-            ImGui::TextUnformatted("Y (m)");
-            ImGui::SameLine(w3 * 2.0f + spacing * 2.0f);
-            ImGui::TextUnformatted("Z (m)");
+            const char* posLabels[] = {"X (m)", "Y (m)", "Z (m)"};
 
-            ImGui::SetNextItemWidth(w3);
-            ImGui::InputScalar("##PosX", ImGuiDataType_Double, &position[0], nullptr, nullptr,
-                               "%.6f");
-            ImGui::SameLine(0.0f, spacing);
-            ImGui::SetNextItemWidth(w3);
-            ImGui::InputScalar("##PosY", ImGuiDataType_Double, &position[1], nullptr, nullptr,
-                               "%.6f");
-            ImGui::SameLine(0.0f, spacing);
-            ImGui::SetNextItemWidth(w3);
-            ImGui::InputScalar("##PosZ", ImGuiDataType_Double, &position[2], nullptr, nullptr,
-                               "%.6f");
+            for (int i = 0; i < 3; ++i) {
+                ImGui::TextUnformatted(posLabels[i]);
 
-            ImGui::Spacing();
+                if (i > 0)
+                    ImGui::SameLine(w3 * i + spacing * i);
+
+                ImGui::SetNextItemWidth(w3);
+                ImGui::InputScalar((std::string("##Pos") + std::to_string(i)).c_str(),
+                                   ImGuiDataType_Double, &config.position[i], nullptr, nullptr,
+                                   "%.6f");
+            }
+
             ImGui::Spacing();
 
             ImGui::Text("Velocity");
             ImGui::TextDisabled("Inertial frame N | meters per second (m/s)");
             ImGui::Spacing();
-            ImGui::Spacing();
 
-            ImGui::TextUnformatted("Vx (m/s)");
-            ImGui::SameLine(w3 + spacing);
-            ImGui::TextUnformatted("Vy (m/s)");
-            ImGui::SameLine(w3 * 2.0f + spacing * 2.0f);
-            ImGui::TextUnformatted("Vz (m/s)");
+            const char* velLabels[] = {"Vx (m/s)", "Vy (m/s)", "Vz (m/s)"};
 
-            ImGui::SetNextItemWidth(w3);
-            ImGui::InputScalar("##VelX", ImGuiDataType_Double, &velocity[0], nullptr, nullptr,
-                               "%.6f");
-            ImGui::SameLine(0.0f, spacing);
-            ImGui::SetNextItemWidth(w3);
-            ImGui::InputScalar("##VelY", ImGuiDataType_Double, &velocity[1], nullptr, nullptr,
-                               "%.6f");
-            ImGui::SameLine(0.0f, spacing);
-            ImGui::SetNextItemWidth(w3);
-            ImGui::InputScalar("##VelZ", ImGuiDataType_Double, &velocity[2], nullptr, nullptr,
-                               "%.6f");
+            for (int i = 0; i < 3; ++i) {
+                ImGui::TextUnformatted(velLabels[i]);
+
+                if (i > 0)
+                    ImGui::SameLine(w3 * i + spacing * i);
+
+                ImGui::SetNextItemWidth(w3);
+                ImGui::InputScalar((std::string("##Vel") + std::to_string(i)).c_str(),
+                                   ImGuiDataType_Double, &config.velocity[i], nullptr, nullptr,
+                                   "%.6f");
+            }
         }
 
         ImGui::Spacing();
 
-        ImGui::TextDisabled("Position (km): X %.3f | Y %.3f | Z %.3f", position[0] / 1000.0,
-                            position[1] / 1000.0, position[2] / 1000.0);
+        ImGui::TextDisabled("Position (km): X %.3f | Y %.3f | Z %.3f", config.position[0] / 1000.0,
+                            config.position[1] / 1000.0, config.position[2] / 1000.0);
 
-        ImGui::TextDisabled("Velocity (km/s): X %.6f | Y %.6f | Z %.6f", velocity[0] / 1000.0,
-                            velocity[1] / 1000.0, velocity[2] / 1000.0);
+        ImGui::TextDisabled("Velocity (km/s): X %.6f | Y %.6f | Z %.6f",
+                            config.velocity[0] / 1000.0, config.velocity[1] / 1000.0,
+                            config.velocity[2] / 1000.0);
 
-        // Attitude: modified Rodrigues parameters.
+        // Attitude
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
@@ -352,30 +333,24 @@ class InitialStateTab : public ITab {
         ImGui::Text("Attitude");
         ImGui::TextDisabled("MRP components | Dimensionless");
         ImGui::Spacing();
-        ImGui::Spacing();
-
-        static double sigmaBN[3] = {0.0, 0.0, 0.0};
 
         const float attitudeWidth =
             std::max(1.0f, (ImGui::GetContentRegionAvail().x - spacing * 2.0f) / 3.0f);
 
-        ImGui::TextUnformatted("Sigma 1");
-        ImGui::SameLine(attitudeWidth + spacing);
-        ImGui::TextUnformatted("Sigma 2");
-        ImGui::SameLine(attitudeWidth * 2.0f + spacing * 2.0f);
+        const char* sigmaLabels[] = {"Sigma 1", "Sigma 2", "Sigma 3"};
 
-        ImGui::TextUnformatted("Sigma 3");
+        for (int i = 0; i < 3; ++i) {
+            ImGui::TextUnformatted(sigmaLabels[i]);
 
-        ImGui::SetNextItemWidth(attitudeWidth);
-        ImGui::InputScalar("##Sigma1", ImGuiDataType_Double, &sigmaBN[0], nullptr, nullptr, "%.8f");
-        ImGui::SameLine(0.0f, spacing);
-        ImGui::SetNextItemWidth(attitudeWidth);
-        ImGui::InputScalar("##Sigma2", ImGuiDataType_Double, &sigmaBN[1], nullptr, nullptr, "%.8f");
-        ImGui::SameLine(0.0f, spacing);
-        ImGui::SetNextItemWidth(attitudeWidth);
-        ImGui::InputScalar("##Sigma3", ImGuiDataType_Double, &sigmaBN[2], nullptr, nullptr, "%.8f");
+            if (i > 0)
+                ImGui::SameLine(attitudeWidth * i + spacing * i);
 
-        // Body angular velocity.
+            ImGui::SetNextItemWidth(attitudeWidth);
+            ImGui::InputScalar((std::string("##Sigma") + std::to_string(i)).c_str(),
+                               ImGuiDataType_Double, &config.sigmaBN[i], nullptr, nullptr, "%.8f");
+        }
+
+        // Angular velocity
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
@@ -383,30 +358,22 @@ class InitialStateTab : public ITab {
         ImGui::Text("Angular Velocity");
         ImGui::TextDisabled("Body frame | Radians per second (rad/s)");
         ImGui::Spacing();
-        ImGui::Spacing();
-
-        static double omegaBNB[3] = {0.0, 0.0, 0.0};
 
         const float omegaWidth =
             std::max(1.0f, (ImGui::GetContentRegionAvail().x - spacing * 2.0f) / 3.0f);
 
-        ImGui::TextUnformatted("X (rad/s)");
-        ImGui::SameLine(omegaWidth + spacing);
-        ImGui::TextUnformatted("Y (rad/s)");
-        ImGui::SameLine(omegaWidth * 2.0f + spacing * 2.0f);
-        ImGui::TextUnformatted("Z (rad/s)");
+        const char* omegaLabels[] = {"X (rad/s)", "Y (rad/s)", "Z (rad/s)"};
 
-        ImGui::SetNextItemWidth(omegaWidth);
-        ImGui::InputScalar("##OmegaX", ImGuiDataType_Double, &omegaBNB[0], nullptr, nullptr,
-                           "%.8f");
-        ImGui::SameLine(0.0f, spacing);
-        ImGui::SetNextItemWidth(omegaWidth);
-        ImGui::InputScalar("##OmegaY", ImGuiDataType_Double, &omegaBNB[1], nullptr, nullptr,
-                           "%.8f");
-        ImGui::SameLine(0.0f, spacing);
-        ImGui::SetNextItemWidth(omegaWidth);
-        ImGui::InputScalar("##OmegaZ", ImGuiDataType_Double, &omegaBNB[2], nullptr, nullptr,
-                           "%.8f");
+        for (int i = 0; i < 3; ++i) {
+            ImGui::TextUnformatted(omegaLabels[i]);
+
+            if (i > 0)
+                ImGui::SameLine(omegaWidth * i + spacing * i);
+
+            ImGui::SetNextItemWidth(omegaWidth);
+            ImGui::InputScalar((std::string("##Omega") + std::to_string(i)).c_str(),
+                               ImGuiDataType_Double, &config.omegaBNB[i], nullptr, nullptr, "%.8f");
+        }
     }
 };
 
