@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package hesitation.messaging;
+
+message Message {
+    uint64 message_id = 1;
+    uint64 timestamp = 2;
+
+    string type = 3;
+
+    bytes payload = 10;
+}
