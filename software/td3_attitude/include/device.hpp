@@ -25,8 +25,8 @@ constexpr bool USE_CUDA = true;
  * @return torch::Device Target compute device.
  */
 inline torch::Device get_device() {
-  static const torch::Device dev =
-      (USE_CUDA && torch::cuda::is_available()) ? torch::Device(torch::kCUDA, 0)
-                                                : torch::Device(torch::kCPU);
+  static const torch::Device dev = (USE_CUDA && torch::cuda::is_available())
+                                       ? torch::Device(torch::kCUDA, 0)
+                                       : torch::Device(torch::kCPU);
   return dev;
 }

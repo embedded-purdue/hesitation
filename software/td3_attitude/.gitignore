@@ -1,6 +1,8 @@
 # Build output and CMake artifacts
 bin/
 build/
+compile_commands.json
+.clangd/
 
 # External dependencies (PyTorch / LibTorch)
 third_party/

@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 project(star_tracker VERSION 1.0.0 LANGUAGES CXX)
 
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -64,7 +68,7 @@ FetchContent_MakeAvailable(googletest)
 macro(add_star_tracker_test test_name source_file)
     add_executable(${test_name} ${source_file})
     target_link_libraries(${test_name} PRIVATE star_tracker_lib GTest::gtest_main)
-    add_test(NAME ${test_name} COMMAND ${test_name})
+    add_test(NAME ${test_name} COMMAND ${test_name} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endmacro()
 
 add_star_tracker_test(test_quaternion tests/test_quaternion.cpp)
