@@ -1,4 +1,3 @@
-
 #include "cte4.h"
 #include <stdexcept>
 #include <vector>
@@ -42,6 +41,8 @@ PropulsionOutput simulatePropulsion(const PropulsionInput& input) {
         thrust_out.thrusters.push_back(f_out_i);
         thrust_out.p_waste += (1.0 - thruster.eta_t) * p_sup; // Excess 
     }
+    
+    thrust_out.p_aux = input.p_propulsion - total_power * scale;
 
     return thrust_out;
 }

@@ -15,6 +15,7 @@ struct PropulsionInput {
 struct PropulsionOutput {
     std::vector<double> thrusters;
     double p_waste = 0.0;
+    double p_aux = 0.0;
 };
 
 PropulsionOutput simulatePropulsion(const PropulsionInput& input);

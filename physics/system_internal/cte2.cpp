@@ -3,8 +3,8 @@
 #include <stdexcept>
 
 BraytonOutput simulateBrayton(
-    const BraytonInput& input,
-    const WorkingFluid& fluid
+    BraytonInput& input,
+    WorkingFluid& fluid
 ) {
     if (input.p_th <= 0 ||
         input.t_out_1 <= input.t_out_5 ||
@@ -24,6 +24,8 @@ BraytonOutput simulateBrayton(
 
     output.t_out_2 = input.t_out_5 +
         output.p_waste_1 / (fluid.m_flow * fluid.cp);
+
+    fluid.temp = output.t_out_2;
 
     if (output.t_out_2 >= input.t_out_1) {
         throw std::invalid_argument("Infeasible temperatures");
