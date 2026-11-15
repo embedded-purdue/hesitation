@@ -1,0 +1,13 @@
+{
+  "format_version": 1,
+  "catalog_source": "Hipparcos",
+  "camera_width": 1024,
+  "camera_height": 1024,
+  "focal_length": 2903.7,
+  "horizontal_fov": 0.349066,
+  "vertical_fov": 0.349066,
+  "distortion_k1": 0,
+  "distortion_k2": 0,
+  "magnitude_threshold": 5.5,
+  "num_images": 300
+}

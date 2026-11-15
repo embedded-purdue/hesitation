@@ -1,0 +1,653 @@
+                                                                                                   JOURNAL OF GUIDANCE, CONTROL, AND DYNAMICS
+                                                                                                   Vol. 36, No. 2, March–April 2013
+
+
+
+                                                                                                                           Highly Robust Lost-in-Space Algorithm Based
+                                                                                                                                on the Shortest Distance Transform
+
+                                                                                                                                               Tjorven Delabie,∗ Thomas Durt,† and Jeroen Vandersteen∗
+                                                                                                                                                        KU Leuven, 3001 Heverlee, Belgium
+                                                                                                                                                                         DOI: 10.2514/1.56860
+                                                                                                                         A robust and fast algorithm that solves the lost-in-space problem for star trackers is presented in this paper. The
+                                                                                                                      algorithm is based on an image-processing technique, the shortest distance transform, which transforms the camera
+                                                                                                                      image into a two-dimensional lookup table. The information from the database can then be efficiently inserted into
+                                                                                                                      this table to compare the camera image with the database. This approach results in an algorithm that is robust to false
+                                                                                                                      stars, distortions on star positions, and failure of registration of bright stars. As an example, the algorithm determines
+                                                                                                                      over 99% of camera images correctly when 400 false stars are added, distortions of 300 (1σ) arcseconds are present,
+                                                                                                                      and the brightest star is missing in the image. In case of incorrect determination, a very reliable criterion indicates that
+                                                                                                                      the determination step has to be repeated. The robustness of this algorithm can allow the use of star trackers in hostile
+                                                                                                                      environments. Furthermore, the algorithm is a valuable contribution to the expanding field of small satellite projects
+Downloaded by Purdue University on October 29, 2026 | http://arc.aiaa.org | DOI: 10.2514/1.56860
+
+
+
+
+                                                                                                                      where the low-cost camera components are more prone to error and registration of false stars. Small satellites using
+                                                                                                                      this algorithm can acquire great functionality at low component costs.
+
+
+                                                                                                                                Nomenclature                                              by using prior knowledge of the attitude. The lost-in-space algorithm
+                                                                                                   k        =     number of elements selected from the set                                is used to initally find the attitude or to restore the attitude after it has
+                                                                                                   NP       =     number of database images                                               been lost. A loss of attitude can occur after a power breakdown caused
+                                                                                                   N tot    =     minimum of the number of stars in the camera image                      by a fast maneuver, radiation, or a bright object like the sun impeding
+                                                                                                                  and the database image                                                  the correct functioning of the tracking mode.
+                                                                                                   n        =     size of a set of elements                                                  Several algorithms to solve the lost-in-space problem have been
+                                                                                                   ncomp    =     number of combinations                                                  proposed. A good survey of the most common algorithms is given by
+                                                                                                   nperm    =     number of permutations                                                  Spratling and Mortari [2]. The great majority [3–7] of the existing
+                                                                                                                                                                                          algorithms use features extracted from triplets of stars in the camera
+                                                                                                   O        =     percentage overlap between two images                                   image and matches these to a preprocessed database of startriplet
+                                                                                                   x        =     x coordinate of a point                                                 features. The most commonly used features are the interstar angle, the
+                                                                                                   y        =     y coordinate of a point                                                 magnitude of the stars, and the area of the formed triangle [2].
+                                                                                                   α        =     right ascension                                                         Recently, several attempts to solve the lost-in-space problem with a
+                                                                                                   αb       =     right ascension boundary                                                neural networking approach have been made [8,9], but the high
+                                                                                                   γ        =     field of view                                                           complexity and the massive parallel architecture that is required to
+                                                                                                   δ        =     declination                                                             solve the algorithm currently limits the practical implementation of
+                                                                                                   σ        =     standard deviation
+                                                                                                                                                                                          this approach.
+                                                                                                   Ω        =     set of points
+                                                                                                                                                                                             A common shortcoming of the current algorithms is their weak
+                                                                                                   Ωc       =     subset of points that lies within Ω
+                                                                                                                                                                                          robustness to distortions in the acquired camera image. Variations in
+                                                                                                                                                                                          magnitude because of badly functioning pixels, distortions on
+                                                                                                                                                                                          acquired star positions in the camera image caused by flaws in the
+                                                                                                                              I.   Introduction                                           optics, or false stars in the image evoked by radiation cause a change
+                                                                                                                                                                                          in camera image features, which results in an incorrect attitude
+                                                                                                   T     O POINT a payload to a target, or an antenna to a ground station,
+                                                                                                         or to orient the solar panels toward the sun, a satellite needs to
+                                                                                                   know its orientation in space. Several sensors have been developed to
+                                                                                                                                                                                          estimation. Because of this weak robustness, current star trackers
+                                                                                                                                                                                          need high-quality expensive optics and detectors and are not well
+                                                                                                   determine this orientation, of which the most accurate sensor is the                   suited to operate in hostile radiation environments.
+                                                                                                   star tracker. By taking a picture of the surrounding star panorama and                    A highly robust star tracker will permit satellite manufacturers
+                                                                                                   comparing it to a database of known star positions, this sensor can                    to acquire high-accuracy attitude determination even in hostile
+                                                                                                   typically determine the attitude of the satellite with an accuracy in the              environments. Furthermore, because of the high robustness of the
+                                                                                                   range of a few arcseconds [1].                                                         algorithm, costs can be cut back on a hardware level. A considerable
+                                                                                                      Second-generation star trackers can solve the lost-in-space                         part of the budget normally needs to be invested into making the star
+                                                                                                   problem, which means they can determine the attitude of the satellite                  tracker components radiation-hardened to limit the number of false
+                                                                                                   without prior knowledge. After having done this, the star tracker                      stars that would otherwise compromise correct star identification.
+                                                                                                   switches to its tracking mode, in which it can limit the database search               Because of the very high robustness of this algorithm to false stars,
+                                                                                                                                                                                          this cost can be eliminated when the budget is limited, e.g., in small-
+                                                                                                      Presented as Paper 2011-6435 at the AIAA Guidance, Navigation, and                  satellite projects. The presented highly robust algorithm will allow
+                                                                                                   Control Conference, Portland, Oregon, 8–11 August 2011; received 3                     this growing small-satellite market to obtain accurate attitude
+                                                                                                   November 2011; revision received 27 April 2012; accepted for publication 27            information at low cost, thereby allowing this platform to handle a
+                                                                                                   April 2012; published online 22 January 2013. Copyright © 2012 by the                  wider variety of missions.
+                                                                                                   American Institute of Aeronautics and Astronautics, Inc. All rights reserved.             In this paper, a new lost-in-space algorithm with very high
+                                                                                                   Copies of this paper may be made for personal or internal use, on condition            robustness is proposed. In Sec. II, an overview of the algorithm
+                                                                                                   that the copier pay the $10.00 per-copy fee to the Copyright Clearance Center,
+                                                                                                                                                                                          is given. The shortest distance algorithm was extensively tested with
+                                                                                                   Inc., 222 Rosewood Drive, Danvers, MA 01923; include the code 1533-3884/
+                                                                                                   13 and $10.00 in correspondence with the CCC.                                          a variety of distortions in the camera image. The results of these
+                                                                                                      *Ph.D. Researcher, Department of Mechanical Engineering, Celestijnen-               tests are presented in Sec. III. This section also discusses the
+                                                                                                   laan 300B. Member AIAA.                                                                validation criterion. Finally, Sec. IV gives a conclusion of the
+                                                                                                      †
+                                                                                                        Student, Department of Mechanical Engineering, Celestijnenlaan 300B.              presented work.
+                                                                                                                                                                                    476
+                                                                                                                                                              DELABIE, DURT, AND VANDERSTEEN                                                             477
+
+
+
+
+                                                                                                                                   Fig. 1   Photographs of a) stars and b) a contour plot of the distance-transformation map.
+
+
+                                                                                                                             II.     Algorithm
+Downloaded by Purdue University on October 29, 2026 | http://arc.aiaa.org | DOI: 10.2514/1.56860
+
+
+
+
+                                                                                                      This section starts with a discussion of the distance-transform
+                                                                                                   technique that is used to process the camera image. Next, the method
+                                                                                                   to generate database images from the star catalog is explained. After
+                                                                                                   this, an explanation of how the images are matched onto each other is
+                                                                                                   given, followed by a discussion of the image comparison. The
+                                                                                                   methods to further improve the speed of the algorithm are then
+                                                                                                   presented. At the end of this section, a schematic overview of the
+                                                                                                   algorithm is given.
+
+                                                                                                   A. Distance Transform
+                                                                                                      A distance transformation D is a mathematical transformation
+                                                                                                   used in image processing. The main idea of a distance transformation
+                                                                                                   is simple: for each point of the entire set Ω, the distance is computed
+                                                                                                   to a certain subset Ωc of it. This definition is given by Eq. (1):
+
+                                                                                                                      Dp  minfdp; qjq ∈ Ωc g                        (1)        Fig. 2 Distribution of clear stars (up to magnitude 5.3) in the night sky,
+                                                                                                                                                                                    Wagner VI projection. Notice the Milky Way.
+                                                                                                   In this equation, p is the point at which we want to calculate the
+                                                                                                   shortest distance value and q represents the points that are inside the          to do this, images with the same field of view as the camera image are
+                                                                                                   subset Ωc . In the presented algorithm, the points inside the subset are         generated from the database. To effectively search the entire
+                                                                                                   the pixels that hold the star centroids. These centroids of the stars in         database, the generated images are evenly spaced over the database.
+                                                                                                   the camera image were estimated in the star-detection algorithm,                 Because our database represents a sphere of stars in an Earth-centered
+                                                                                                   which precedes the lost-in-space algorithm. By performing a distance             coordinate system; this even spacing can be achieved by distributing
+                                                                                                   transformation, a map is created that contains, for each pixel, the              points evenly over a sphere and using these distributed points as
+                                                                                                   distance to the nearest pixel that holds a star centroid. The method we          centers of the database images. After the centers have been selected,
+                                                                                                   use to calculate the distance is the Euclidean distance squared, given           the images are generated by selecting all the stars that lie within the
+                                                                                                   in Eq. (2):                                                                      field of view of the database image.
+                                                                                                                                                                                       This database is reduced so that it only holds the magnitude and
+                                                                                                                    dp; q  px − qx 2  py − qy 2                  (2)        coordinates of the stars with a visual magnitude below 5.3. This
+                                                                                                                                                                                    magnitude was determined during simulations to make sure there are
+                                                                                                   The main advantage of this distance is that it is a symmetrical                  always three stars within the field of view of 20 × 20 deg of the
+                                                                                                   distance; therefore, it can be used to compare images both translated            camera. Because the stars are not uniformly distributed over the sky
+                                                                                                   and rotated. Because the squared Euclidean distance is taken, the                (Fig. 2), one cannot simply calculate such a threshold magnitude. To
+                                                                                                   distance-transformation map consists of integers. This makes the                 determine the threshold magnitude, a simulation was done using
+                                                                                                   computations faster without losing information.                                  images created at 75,000 points distributed evenly over the sky.
+                                                                                                      A picture of a star panorama and the contour plot of its                      Because each image needs to contain three stars at a minimum to
+                                                                                                   corresponding distance transformation is presented in Fig. 1.                    allow for a correct attitude determination, the magnitude of the third
+                                                                                                      Several algorithms to calculate the distance transformation have              brightest star was withheld. Over the entire sky, this magnitude was
+                                                                                                   been developed. A comparative survey of the most frequently used                 5.21. A margin was taken into account for distortions, which leads to
+                                                                                                   methods is given by Fabbri et al. [10]. In our algorithm, we used the            the chosen magnitude of 5.3.
+                                                                                                   algorithm developed by Maurer et al. [11]. This is an efficient linear-
+                                                                                                   time algorithm that returns a map containing, in each point, the                 1. Distributing Points Evenly on a Sphere
+                                                                                                   Euclidean distance squared to the closest star. Information from the               Several methods to distribute points evenly on a sphere have been
+                                                                                                   processed database will be inserted into this map to compare the                 developed. The packing method tackles the problem of distributing
+                                                                                                   images. The processing of the database will be discussed next.                   points on a sphere so that the minimal distance between the points is
+                                                                                                                                                                                    maximized. The covering method minimizes the maximal distance of
+                                                                                                   B. Database Images                                                               any point on the sphere to the closest one of the other points. The
+                                                                                                      The data of the camera image need to be compared to the data in a             minimal energy method uses the model of electrons repelling each
+                                                                                                   star catalogue: in this case, the Hipparcos catalogue [12]. To be able           other and minimizes the Coulomb potential [13]. In this algorithm,
+                                                                                                   478                                                        DELABIE, DURT, AND VANDERSTEEN
+
+
+                                                                                                                                                                                    C. Matching the Camera Image with the Database Images
+                                                                                                                                                                                       At each of the evenly distributed points (Sec. II.B.1), a database
+                                                                                                                                                                                    image is generated (as in Sec. II.B.2). If there is an estimate of the
+                                                                                                                                                                                    attitude, the database images can be selected in the matching step
+                                                                                                                                                                                    based on their distance to the estimated attitude. This way, the
+                                                                                                                                                                                    database images generated closest to the estimated attitude can be
+                                                                                                                                                                                    selected first. Because there is no prior knowledge or estimate of the
+                                                                                                                                                                                    attitude in the lost-in-space case, the database images are not ordered
+                                                                                                                                                                                    and are selected in order of increasing right ascension. In general, the
+                                                                                                                                                                                    center of the database image will not coincide with the center of the
+                                                                                                                                                                                    camera image (Fig. 4b). In most cases, the camera image will also be
+                                                                                                                                                                                    rotated in reference to the database images (Fig. 4c).
+                                                                                                                                                                                       This is a problem because the camera image and database image
+                                                                                                                                                                                    need to have their star centroids on the same position to offer a
+                                                                                                                                                                                    positive determination. We call the act of rotating and translating the
+                                                                                                         Fig. 3   Example of an even distribution of points on a sphere.            database image so that the star centroids of two equal images coincide
+                                                                                                                                                                                    “matching” the images. One method discussed in [15], using the two
+                                                                                                   we use the covering method (Fig. 3) to ensure that the worst-case                brightest stars, and one new method we developed ourselves will be
+                                                                                                   difference between the camera image center, and the database image               presented and compared to each other.
+                                                                                                   center is minimal [14].
+Downloaded by Purdue University on October 29, 2026 | http://arc.aiaa.org | DOI: 10.2514/1.56860
+
+
+
+
+                                                                                                                                                                                    1. Two-Brightest-Stars Method
+                                                                                                   2. Constructing the Database Image                                                  In this method, the brightest star in the database image is placed at
+                                                                                                      The generated points serve as centers for the database images. All            the same position as the brightest star of the camera image, thus
+                                                                                                   the stars that lie within the field of view of the camera γ and that are         solving the translation problem. To solve the problem of the different
+                                                                                                   brighter than the threshold magnitude are subsequently selected out              rotation, the second brightest star is rotated toward the second
+                                                                                                   of the database. The generated database thus depends on the field of             brightest star of the camera image. This process is illustrated in Fig. 5.
+                                                                                                   view of the camera and the threshold magnitude. Taking each star that               In Fig. 5a, we see the image taken by the camera. The image that is
+                                                                                                   has its right ascension and declination within 2γ deg of the center              extracted from the database is added to this in Fig. 5b. After the
+                                                                                                   would not produce a good solution. As can be seen by examining the               translation, the two brightest stars are on the same place, as can be
+                                                                                                   grid of Fig. 3, such a partition would result in images that are a lot           seen in Fig. 5c. Finally, the rotation step matches the images in
+                                                                                                                                                                                    Fig. 5d.
+                                                                                                   smaller at higher declination. A problem also arises when an image
+                                                                                                   wraps around the poles. To overcome these two problems, the
+                                                                                                                                                                                    2. Centroid Method
+                                                                                                   database is rotated around the negative right ascension and
+                                                                                                   declination of the center of the image. This results in a database where            This method uses the centroid of a certain number of brightest stars
+                                                                                                   the center of the image has right ascension and declination of 0 deg.            to solve the translation problem. Vectors between the centroid and the
+                                                                                                   This eliminates the problems that arise when wrapping around the                 used brightest stars are calculated, and the angle between them is then
+                                                                                                   poles. Because the right ascension lines lie closer together at higher           calculated. The smallest angle is used to solve the rotation problem.
+                                                                                                   declination, the right ascension boundary has to be higher at a higher           This process is depicted in Fig. 6.
+                                                                                                   declination. It can be found that the boundary can be determined by                 The camera image is presented in Fig. 6a, and the database image is
+                                                                                                   Eq. (3):                                                                         added to this in Fig. 6b. The centroids of the three brightest stars are
+                                                                                                                                                                                    represented by the small circle and are coincided in Fig. 6c. The
+                                                                                                                                           γ                                        vectors between the centroid and each of the three brightest stars are
+                                                                                                                                 αb                                       (3)      calculated, and the three angles between those vectors are calculated
+                                                                                                                                        2 cosδ
+                                                                                                                                                                                    in Fig. 6d. The smallest angle is selected. This smallest angle is used
+                                                                                                                                                                                    to rotate the stars, as can be seen in Fig. 6e. The procedure results in a
+                                                                                                   The right ascension boundary is a function of the declination.                   matching of center and roll angle of the images, as can be seen in
+                                                                                                                                                                                    Fig. 6f.
+
+                                                                                                                                                                                    3. Comparison of Methods
+                                                                                                                                                                                       An important issue with matching the images is the fact that the
+                                                                                                                                                                                    order of brightness of the stars in the camera image and the
+                                                                                                                                                                                    corresponding database image might differ. This can happen when
+                                                                                                                                                                                    the star-detection algorithm outputs inaccurate values for the
+                                                                                                                                                                                    magnitude of the detected stars. Because a star tracker can determine
+                                                                                                                                                                                    star magnitude accurately down to an error of around 0.1 magnitude
+                                                                                                                                                                                    rms [16], and because the variation in magnitude between the
+                                                                                                         Fig. 4   Equal images with different orientations or positions.            brightest stars is generally a lot higher than this error, the order of
+
+
+
+
+                                                                                                                                                              Fig. 5   Two-brightest-stars method.
+                                                                                                                                                               DELABIE, DURT, AND VANDERSTEEN                                                         479
+
+
+
+
+                                                                                                                                                                                       Fig. 7   Distance calculation in the star-tracker algorithm.
+
+
+                                                                                                                                                                                 transform map. The star coordinates of the database stars are the
+                                                                                                                              Fig. 6   Centroid method.
+                                                                                                                                                                                 input to the two-dimensional lookup map created by the distance
+                                                                                                                                                                                 transform. For each star of the database, the distance to the closest star
+Downloaded by Purdue University on October 29, 2026 | http://arc.aiaa.org | DOI: 10.2514/1.56860
+
+
+
+
+                                                                                                   brightness of the brightest camera image stars and database image             of the camera image is retrieved. These distances are stored in an
+                                                                                                   stars is generally the same. However, to ensure correct matching even         array and are sorted on shortest distance. Figure 7 shows how the
+                                                                                                   in the event that the order of brightness is different, the matching          distance is calculated.
+                                                                                                   procedure for two images is performed a number of times while                    Assuming the distance between the concentric circles is one unit,
+                                                                                                   interchanging the order of brightness of a certain amount of brightest        the database star in the top left corner is two units of distance
+                                                                                                   stars. The problem is that this results in a lot of combinations and          separated from its closest camera image star. The star in the top right
+                                                                                                   hence a lot of iterations, which can greatly slow down the algorithm.         corner has its closest camera image star at a distance of three units,
+                                                                                                   Therefore, the number of iterations should be reduced as much as              and the other star is four units of distance away. This results in the
+                                                                                                   possible without losing robustness.                                           distance array, as depicted in equation
+                                                                                                      The advantage of the second method is that the stars used to                                                2 3
+                                                                                                   calculate the centroid can interchange their place in the brightness                                              2
+                                                                                                   rank without changing the location of the centroid. When, for                                                  435
+                                                                                                   example, three stars are selected out of the five brightest stars, this                                           4
+                                                                                                   is translated to taking the combinations of three out of five (Eq. 5).
+                                                                                                   For the first method, the relative brightness of the two stars in the set     Based on this array, the algorithm can decide how well the images are
+                                                                                                   is important because the first star is used to tackle the translation         alike.
+                                                                                                   problem and the second star to solve the rotation problem. This                  Several decision criteria can be used to determine how well the
+                                                                                                   translates to taking the permutations of two out of five. Because only        images resemble each other based on this distance array. In this
+                                                                                                   the two first stars are important, this number is reduced (Eq. 4):            algorithm, a combination of two criteria is used. The combination of
+                                                                                                                                                                                 both gives better results than when the two criteria are used separately.
+                                                                                                                                               n!                                The first criterion computes the total distance of a certain number of
+                                                                                                                                  ntwo                                 (4)
+                                                                                                                                            n − 2!                             stars, and the second criterion counts the number of database stars that
+                                                                                                                                                                               are within a certain threshold distance of a camera star.
+                                                                                                                                        n        n!
+                                                                                                                          ncentr                                      (5)
+                                                                                                                                        k    k!n − k!                          1. Distance Criterion
+                                                                                                                                                                                    This criterion sums up the distances of a reduced number of stars.
+                                                                                                   In Table 1, the number of combinations and permutations is given.             This reduced number of stars is selected by taking the minimum of the
+                                                                                                   The first row gives the number of brightest stars that can be                 number of database image stars and the number of camera image
+                                                                                                   interchanged n, and the second row gives the number of permutations           stars. When this number, N tot , is obtained, the N tot closest distances
+                                                                                                   required by the two-star method. The last row gives the number of             are added together. The smaller the total distance, the more the
+                                                                                                   combinations required by the centroid method. In the centroid                 images are alike.
+                                                                                                   method, k is taken to be three.
+                                                                                                      Although matching the center and roll angle with the centroid              2. Close Stars Criterion
+                                                                                                   method requires more calculations, it is clear that less combinations            The number of distances that are smaller than a threshold value are
+                                                                                                   between stars are needed. Because the time to match the images is             counted, and this is used as a criterion. Equal images will obviously
+                                                                                                   negligible compared to the time required for the comparison step, the         have a lot of close stars, so the higher the number, the more the images
+                                                                                                   computational time of the algorithm with the centroid method is one-          are alike.
+                                                                                                   third lower when the six brightest stars are used. This method is more           An important asset of this algorithm is that it can very accurately
+                                                                                                   robust and faster than the two-star method, so this is preferred.             determine whether the offered solution is the correct one. Therefore,
+                                                                                                                                                                                 the percentage of close stars is determined. The number of close stars,
+                                                                                                   D. Image Selection Using the Shortest Distance-Transform Map                  divided by N tot, offers a very good value measure of the proposed
+                                                                                                     Once the center and roll angle of the images are matched, the               solution. The power of this criterion will be presented in the
+                                                                                                   images are compared to each other using the shortest distance-                simulations that are discussed in the next section.
+
+                                                                                                                    Table 1    Comparison of number of iterations                E. Improvements in Computational Time
+                                                                                                            n             3            4        5         6      7                  The calculation time for the algorithm can be drastically reduced
+                                                                                                            ntwo          6            12       20        30     42
+                                                                                                                                                                                 by performing some minor modifications on the algorithm. These
+                                                                                                            ncent         1            4        10        20     35              changes do not affect the robustness and were therefore implemented
+                                                                                                                                                                                 in the algorithm. The calculation time was first reduced by using the
+                                                                                                   480                                                         DELABIE, DURT, AND VANDERSTEEN
+
+
+                                                                                                   information obtained in the matching step to discard a lot of images
+                                                                                                   that will not give a good comparison before the actual comparison
+                                                                                                   step takes place. A second reduction cuts the calculation time down
+                                                                                                   significantly by making use of a preprocessed database. Both
+                                                                                                   methods will be discussed next.
+
+                                                                                                   1. Discarding False Images
+                                                                                                      A serious reduction in computation time can be obtained when
+                                                                                                   parts of the database images can be discarded before the actual
+                                                                                                   comparison step. Information obtained in the matching step can be
+                                                                                                   used to discard the vast majority of images without risking loss of the
+                                                                                                   correct database image. The three angles and three distances between
+                                                                                                   the centroid and the brightest stars offer a very good criterion to             Fig. 8 Effect of positional error on correct attitude determination.
+                                                                                                   discard images. When two images are alike, these features will be
+                                                                                                   approximately the same; otherwise, they would not be matched
+                                                                                                   correctly. The database images that have their six features within a          correctness of the algorithm. The percentage of close stars is also
+                                                                                                   predetermined margin of the camera image features are passed on to            logged since this can serve as a criterion to determine the correctness
+                                                                                                   the comparison step. This margin is taken as considerably large so            of the determination. The calculation time is determined with the C++
+                                                                                                   that the robustness of the algorithm is not compromised. Because of           command GetTickCount  and was also logged.
+                                                                                                   the large variation in these features over the entire sky, around 90% of
+                                                                                                   the images can be discarded.
+Downloaded by Purdue University on October 29, 2026 | http://arc.aiaa.org | DOI: 10.2514/1.56860
+
+
+
+
+                                                                                                                                                                                 A. Positional Error
+                                                                                                                                                                                    The sensor information needed by the lost-in-space algorithm is
+                                                                                                   2. Preprocessed Database
+                                                                                                                                                                                 given by the star-acquisition algorithm. This algorithm processes the
+                                                                                                      Because the database images and the calculation of the centroid            image taken by the camera and returns the position of the stars in the
+                                                                                                   and angles in the matching step of the database images are always             image and a measure for their magnitude. This positional informa-
+                                                                                                   the same, the database can also be preprocessed to hold these values.         tion is subject to some noise. In the state-of-the-art star-acquisition
+                                                                                                   For each database image, the position and magnitude of the stars              algorithms, the positional error amounts to around one-10th of a pixel
+                                                                                                   in the image can be stored together with all the possible combinations        [17]. Other sources of positional error are flaws in the image sensor or
+                                                                                                   of centroids and smallest angles for the matching step. This
+                                                                                                                                                                                 in the optics of the system. Especially in low-cost projects, the lower
+                                                                                                   eliminates a lot of computations and significantly enhances the speed
+                                                                                                                                                                                 quality of the components can generate a significant positional error.
+                                                                                                   of the algorithm. The preprocessed database only slightly increases
+                                                                                                                                                                                    To test the effect of this positional error, Gaussian noise was added
+                                                                                                   memory usage.
+                                                                                                                                                                                 to the position of the stars. The mean was set to zero, and tests were
+                                                                                                                                                                                 performed with increasing standard deviation to test the performance
+                                                                                                   F. Schematic Overview                                                         of the algorithm under increasing positional error. The standard
+                                                                                                     As a conclusion to the discussion of the algorithm, we present a            deviation is expressed in arcseconds of deviation (Fig. 8).
+                                                                                                   schematic overview of the shortest distance transform algorithm in               The algorithm determines the attitude flawlessly up until a devia-
+                                                                                                   Algorithm 1.                                                                  tion of 200 arcseconds (1σ) on the star positions. With positional
+                                                                                                                                                                                 errors of 1000 arcseconds (1σ), the algorithm still determines almost
+                                                                                                                                                                                 99% of the images correctly. In the tested setup, an error of
+                                                                                                                            III.    Test Results                                 1000 arcseconds corresponds to a star being viewed more than seven
+                                                                                                      The performance of the algorithm was determined during a                   pixels away from its true position.
+                                                                                                   number of simulations with a variety of different noise conditions.              The comparison with other algorithms is very favorable for the
+                                                                                                   Camera images are generated from the Hipparcos catalog, and                   shortest distance algorithm. The pyramid star identification
+                                                                                                   perturbations are added. Three kinds of perturbations were added to           technique [18], which the authors say is extremely robust, deter-
+                                                                                                   the images: perturbations on star positions, stars leaving the image,         mines 95.8% of images correctly when a deviation of around
+                                                                                                   and false stars entering the image. When the effect of stars leaving the      4 arcseconds σ and a maximum of 24 false stars are present. The
+                                                                                                   image was tested, the brightest stars were left out to simulate a worst-      oriented triangles method [19], which was also designed to be very
+                                                                                                   case scenario.                                                                robust, recognizes 57% of the input stars when the positional error is
+                                                                                                      The camera was assumed to have a field of view of 20 × 20 deg              150 arcseconds σ.
+                                                                                                   and a pixel array of 512 × 512. The minimum sensitivity of the                   The very significant lead of the shortest distance algorithm is
+                                                                                                   camera was set at a visual stellar magnitude of six. The calculations         obtained because this algorithm has a different approach than the
+                                                                                                   were performed on a Macbook Pro with 2.33 GHz Intel Core 2 Duo                existing algorithms. It does not use a combination of a sets of stars to
+                                                                                                   processor, and the algorithm was written in Visual C++ 6.                     determine the position but uses all the stars in the image to compare
+                                                                                                      In each test session, 10,000 images generated uniformly over               the image to the database.
+                                                                                                   the database served as an input for the algorithm. For each image, the
+                                                                                                   determined attitude is compared to the real attitude to verify the
+                                                                                                                                                                                 B. Missing Stars
+                                                                                                                                                                                    Due to the change in the magnitude of stars, or due to malfunc-
+                                                                                                                     Algorithm 1 Outline of the shortest                         tioning pixels in the camera, sometimes a star tracker fails to notice a
+                                                                                                                       distance-transform algorithm.                             star. This effect was simulated in the test by discarding the brightest
+                                                                                                           1) Shortest distance transform (star positions, magnitudes)
+                                                                                                                                                                                 stars in the image. Because the matching step of the algorithm uses
+                                                                                                           2) Load database images                                               the brightest stars to match the images, a loss of these stars has the
+                                                                                                           for dataindex  1 → numberOfDatabaseImages do                         greatest negative effect on the performance of the algorithm.
+                                                                                                           3) Select database image (dataindex)                                  Simulations were done up to a loss of the six brightest stars in the
+                                                                                                           4) Match camera image and database image                              image. This is shown in Fig. 9.
+                                                                                                           if Match is positive then                                                A small fraction (0.2%) of images cannot be determined when the
+                                                                                                           5) Input database information in Shortest Distance map                brightest star is missing. When the three brightest stars are not
+                                                                                                           end if
+                                                                                                           end for
+                                                                                                                                                                                 captured by the camera, 90% of the images are still correctly
+                                                                                                           6) Withhold best image and return corresponding attitude              determined. The odds that the brightest stars are missing in the
+                                                                                                                                                                                 camera image are really slim, and the algorithm yields good results up
+                                                                                                                                                             DELABIE, DURT, AND VANDERSTEEN                                                            481
+
+
+
+
+                                                                                                   Fig. 9 Effect of a loss of brightest stars on correct attitude                   Fig. 10 Effect of false stars on correct attitude determination.
+                                                                                                   determination.
+                                                                                                                                                                                will, in most cases, have a larger magnitude than that of the brightest
+                                                                                                                                                                                true stars. By choosing the magnitude of the false stars to be higher
+                                                                                                   to a loss of the three brightest stars, so it can be concluded that the      than that of the third brightest star, the false stars will not interfere
+                                                                                                   robustness to this effect is also very high.                                 with the matching procedure. In the second simulation, bright false
+                                                                                                                                                                                stars with an apparent magnitude lower than that of the brightest true
+                                                                                                   C. False Stars                                                               stars were added. Although not common, there are cases in which
+Downloaded by Purdue University on October 29, 2026 | http://arc.aiaa.org | DOI: 10.2514/1.56860
+
+
+
+
+                                                                                                       False stars are stars that are found in the camera image by the star-    false stars can be brighter than the brightest true stars. In this case,
+                                                                                                   detection algorithm but do not have a corresponding star in the              the false stars will interfere with the matching procedure. The effect
+                                                                                                   database. Depending on what caused them, these false stars can have          of false stars and bright false stars on the correct determination of the
+                                                                                                   varying magnitudes. A number of causes that can generate false stars         attitude is given in Figs. 10 and 11.
+                                                                                                   are given next:                                                                 The algorithm determines the attitude correctly with up to 400 false
+                                                                                                       1) The camera could detect stars that have a higher magnitude            stars added to the image. When there are 650 false stars in the image,
+                                                                                                   than the limiting magnitude of the database. In this case, the detected      it still determines more than 98% of the images correctly. With an
+                                                                                                   star does, in fact, correspond to a real star, but this star has no          average amount of around 20 real stars in the image, we can clearly
+                                                                                                   corresponding database star and will be considered as a false star           say that the shortest distance algorithm yields good results even with
+                                                                                                   by the algorithm. The magnitude of these stars varies around the             a vast majority of false stars. When this is compared to the robustness
+                                                                                                   detection threshold of the camera, and will therefore have higher            of the oriented triangles algorithm, where 92% of the images are
+                                                                                                   magnitudes than the other detected stars.                                    found with three false stars and 50 arcseconds of positional noise, it is
+                                                                                                       2) The various noise sources (shot noise, read noise, quantization       clear that the shortest distance algorithm is very robust to false stars.
+                                                                                                   noise, etc.) in the camera can generate spikes in the image data and, in     This makes the shortest distance algorithm useful for star trackers that
+                                                                                                   this way, generate false stars. For a quality detector, this effect is       operate in highly hostile environments.
+                                                                                                   usually limited and false stars generated because of this will be faint         When a false star with a higher brightness than that of all true stars
+                                                                                                   [20].                                                                        is present in the image, only a small fraction (0.02%) of the images
+                                                                                                       3) A man-made object (artificial satellite or space debris) passing      cannot be determined. When three false stars with a magnitude lower
+                                                                                                   in the field of view of the camera can reflect light from the sun on the     than that of all true stars are added, around 90% of the images are still
+                                                                                                   star-tracker camera and generate a false star. The probability that a        determined correctly. The odds are really slim that there are three
+                                                                                                   man-made object passes the field of view was determined using the            false stars that are brighter than all true stars, so it can be concluded
+                                                                                                   procedure of [21] for a star tracker with a field of view of 20 × 20 deg     that the robustness to this effect is also very high.
+                                                                                                   and an integration time of 0.1 s in low Earth orbit. The resulting
+                                                                                                   probability of having a man-made object in the field of view is around
+                                                                                                                                                                                D. Execution Time and Memory Usage
+                                                                                                   1.44%, taking into account that the U.S. Space Surveillance Network
+                                                                                                   had 16,094 cataloged objects approximately 10 cm or larger in                   The execution time of the algorithm is determined by the
+                                                                                                   July 2011 [22]. Although most of the objects passing in the field of         following:
+                                                                                                   view will not be large enough to generate a false star or will only             1) Because the execution time of the shortest distance procedure
+                                                                                                   generate a faint false star, a small fraction of them, such as the           increases linearly with the number of pixels, the execution time is
+                                                                                                   International Space Station, may cause false stars that are brighter         determined by the number of pixels of the camera image.
+                                                                                                   than all true stars in the image.                                               2) Because more combinations used in the matching step will
+                                                                                                       4) A planet of our solar system in the field of view of the camera can   increase the execution time of the matching step and will increase the
+                                                                                                   generate a false star. The probability of viewing a planet rises when        number of comparison steps (as shown in Table 1), the execution time
+                                                                                                   the field of view increases. Five planets can create false stars with        is determined by the number of combinations of brightest stars used
+                                                                                                   stellar magnitude lower than that of the brightest true stars: Venus,        in the matching step.
+                                                                                                   Mars, Jupiter, Mercury, and Saturn [23]. However, these can be
+                                                                                                   filtered out based on magnitude information in the star-detection
+                                                                                                   algorithm [24].
+                                                                                                       5) Cosmic rays can generate bright false stars in the star-tracker
+                                                                                                   image. The probability of cosmic rays generating false stars is highly
+                                                                                                   dependent on the environment of the satellite. However, because
+                                                                                                   bright signals generated by cosmic ray events are clearly distin-
+                                                                                                   guishable from real stars, it is generally straightforward to eliminate
+                                                                                                   false stars generated by cosmic rays. Another approach is to take
+                                                                                                   multiple consecutive frames and compare them, as there is very little
+                                                                                                   chance of a cosmic ray event hitting the same pixel twice in quick
+                                                                                                   succession [25].
+                                                                                                       The effect of false stars was determined in two simulations. In the
+                                                                                                   first simulation, the added false stars had magnitudes that were higher
+                                                                                                   than those of the three brightest true stars. As discussed, false stars       Fig. 11 Effect of bright false stars on correct attitude determination.
+                                                                                                   482                                                    DELABIE, DURT, AND VANDERSTEEN
+
+
+                                                                                                                                                                            large amount, i.e., 1337 of points for the tests. This leads to an image
+                                                                                                                                                                            overlap of 97.43%, as can be seen from Eq. (6).
+                                                                                                                                                                               Using these parameters, the execution time, averaged over 10,000
+                                                                                                                                                                            executions, was 75 ms (see Fig. 12). The execution times were
+                                                                                                                                                                            measured with the C++ command GetTickCount . The memory
+                                                                                                                                                                            required to store the preprocessed database (as discussed in
+                                                                                                                                                                            Sec. II.E.2) is 4.7 Mb in this case.
+
+                                                                                                                                                                                                γ∕180 deg π2 − 4π∕3∕N p
+                                                                                                                                                                                           O                             × 100                    (6)
+                                                                                                                                                                                                     γ∕180 deg π2
+
+
+                                                                                                   Fig. 12 Calculation time and correct determinations versus number of     E. Validation Criterion
+                                                                                                   database images.                                                            The algorithm will always return an attitude, even when it has not
+                                                                                                                                                                            found the correct attitude. To be able to determine whether the output
+                                                                                                                                                                            given by the algorithm is correct, we can use a validation criterion that
+                                                                                                      3) As the execution time of the algorithm increases linearly with
+                                                                                                                                                                            proved to be very reliable during testing: the percentage of close stars.
+                                                                                                   the number of database images, as is depicted in Fig. 12, the
+                                                                                                                                                                            When the shortest distance algorithm returns a false image, the
+                                                                                                   execution time is determined by the number of database images.
+                                                                                                                                                                            percentage of close stars is generally low. In case the algorithm
+                                                                                                      4) Because stricter margins in the prefilter step will discard more
+                                                                                                                                                                            should not return any image, the percentage of close stars is zero.
+                                                                                                   images before the comparison step is executed, the execution time is
+Downloaded by Purdue University on October 29, 2026 | http://arc.aiaa.org | DOI: 10.2514/1.56860
+
+
+
+
+                                                                                                   determined by the settings of the prefilter, resulting in a lower        When the validation criterion is lower than a selected threshold value,
+                                                                                                   execution time, as discussed in Sec. II.E.1.                             the lost-in-space algorithm is repeated with a new camera image.
+                                                                                                      5) Preprocessing the database reduces the number of calculations
+                                                                                                   that need to be done and increases the speed of the algorithm as         1. Graphical Representation
+                                                                                                   discussed in Sec. II.E.2.                                                   To graphically show how the criterion separates the good
+                                                                                                      The results that were presented in this section were obtained with    determinations from the false determinations, we have drawn
+                                                                                                   camera images of 512 × 512 pixels, making combinations of three          histograms of the criterion during tests with missing stars. The
+                                                                                                   out of the six brightest stars and using 1337 database images.           criterion is depicted on the horizontal axis, and the two vertical axes
+                                                                                                   Although it can be seen in Fig. 12 that, when using more than 400        hold the number of correct and false proposed solutions. The case
+                                                                                                   database images, there are diminishing returns, a design choice          where stars were missing was chosen because it was seen in tests
+                                                                                                   has to be made between a faster algorithm with a smaller success rate    that the algorithm is most sensitive to bright stars that are missing
+                                                                                                   and a somewhat slower algorithm with high robustness. Because            in the image. As can be seen in Fig. 13, the correct and wrong
+                                                                                                   robustness is key in the lost-in-space algorithm, we chose to use a      determinations are clearly separated by the criterion. Where a correct
+                                                                                                                                                                            determination has a percentage of close stars of around 90%, a wrong
+                                                                                                                                                                            determination leads to a percentage of close stars of around 30%. It
+                                                                                                                                                                            can be seen that the criterion is very reliable in this case.
+                                                                                                                                                                               In the case of false stars (Fig. 14) and distortion on star positions
+                                                                                                                                                                            (Fig. 15), the criterion also separates the correct and wrong
+                                                                                                                                                                            determinations, albeit not as clearly as is the case with the missing
+                                                                                                                                                                            stars. Given the fact that the algorithm is very insensitive to false stars
+                                                                                                                                                                            and distortions, this is not a big issue.
+
+                                                                                                                                                                            2. Implementation
+                                                                                                                                                                               The decision criterion was implemented with a rejection threshold
+                                                                                                                                                                            of 50%. When the percentage of close stars is lower than this value,
+                                                                                                                                                                            the attitude will be considered to be wrong and the lost-in-space
+                                                                                                                                                                            algorithm is repeated with a new camera image.
+                                                                                                                                                                               In the first case, a number of brightest stars are missing from the
+                                                                                                                                                                            image. In Table 2, the separation of the results in four categories is
+                                                                                                                                                                            depicted. The results are separated based on whether they were
+                                                                                                   a) 1 missing star                                                        correctly (C) or wrongly (W) determined and whether the decision
+                                                                                                                                                                            criterion rejected (R) or passed (P) the result. It can be seen from this
+
+
+
+
+                                                                                                   b) 6 missing stars
+                                                                                                   Fig. 13 Separation of correct and wrong determinations by the            Fig. 14 Separation of correct and wrong determinations with 1000 false
+                                                                                                   criterion: a) one missing star, and b) six missing stars.                stars.
+                                                                                                                                                                 DELABIE, DURT, AND VANDERSTEEN                                                            483
+
+
+                                                                                                                                                                                          Table 6    Decision criterion separation in case of a combination
+                                                                                                                                                                                                                   of distortions
+                                                                                                                                                                                   No. of       Arcseconds      No. of    No. of    C∕P    C∕R     W∕P    W∕R
+                                                                                                                                                                                   missing          (1σ)        bright    false
+                                                                                                                                                                                   stars         distortion     false      stars
+                                                                                                                                                                                                                 stars
+                                                                                                                                                                                   1                100            0         20    99.48   0.09    0.17    0.26
+                                                                                                                                                                                   1                100            0         50    99.47   0.04    0.29    0.20
+                                                                                                                                                                                   1                100            1         50    99.32   0.10    0.25    0.33
+                                                                                                                                                                                   1                400            0        100    98.20   0.14    1.24    0.42
+                                                                                                                                                                                   1                400            1        100    97.18   0.24    1.91    0.67
+                                                                                                                                                                                   1                400            1        300    93.45   0       6.55    0
+                                                                                                                                                                                   2                400            1        300    83.06   0      16.94    0
+
+
+                                                                                                   Fig. 15 Separation of correct and wrong determinations with a
+                                                                                                   positional error of 1500 arcseconds 1σ.                                         than the threshold, and the criterion therefore does not reject attitude
+                                                                                                                                                                                   determinations, as can be seen in Table 4. The decision criterion has
+                                                                                                                                                                                   no effect in this case.
+                                                                                                   table that the vast majority of wrong attitudes are rejected by                    In the case where there are false stars with a lower magnitude than
+                                                                                                   the criterion. Furthermore, the algorithm rejects very few correct              that of all true stars, the decision criterion rejects the vast majority of
+                                                                                                   attitudes, limiting the chance of an unnecessary repetition of the lost-        wrong results. The separation into the four categories can be seen in
+Downloaded by Purdue University on October 29, 2026 | http://arc.aiaa.org | DOI: 10.2514/1.56860
+
+
+
+
+                                                                                                   in-space algorithm.                                                             Table 5.
+                                                                                                      The separation into the four categories in the case of distortion on            In Table 6, the results of the shortest distance algorithm and its
+                                                                                                   the pixel position is shown in Table 3. The decision criterion again            decision criterion are shown for a selection of combined distortions
+                                                                                                   rejects almost all the wrong results. When the distortion on the pixel          on the camera image. The results in this table reflect the high
+                                                                                                   position increases, the number of rejected correct measurements                 robustness of the shortest distance algorithm, even when there is a
+                                                                                                   increases too.                                                                  combination of distortions in the image. It can also be seen that the
+                                                                                                      The wrong attitude determinations because of false stars with a              decision criterion successfully separates the correct and wrong
+                                                                                                   magnitude higher than that of the third brightest real star are not             images if the number of false stars is limited. Up from around 50
+                                                                                                   rejected by the decision criterion. The algorithm only starts to fail           false stars, the decision criterion lets more false determinations pass
+                                                                                                   when more than 400 false stars are in the image. With such a high               than it rejects.
+                                                                                                   number of false stars, the percentage of close stars is always higher
+
+                                                                                                                                                                                                               IV.    Conclusions
+                                                                                                          Table 2     Decision criterion separation in case of missing stars
+                                                                                                                                                                                      The lost-in-space algorithm presented here is based on the shortest
+                                                                                                                     C∕P              C∕R             W∕P               W∕R        distance transform technique. This new approach to solve the lost-in-
+                                                                                                      1              99.73            0.06            0                 0.21       space problem leads to a fast algorithm that is a lot more robust to
+                                                                                                      2              97.86            0.24            0.06              1.84       distortions in the camera image than existing algorithms. The
+                                                                                                      3              89.54            1.09            0.15              9.22       algorithm proved in tests to be robust to missing stars, false stars, and
+                                                                                                      4              69.33            1.77            0.18              28.72      distortions on star positions. Furthermore, this algorithm has a
+                                                                                                      5              47.30            2.02            0.34              50.34      reliable criterion to determine whether the attitude has been correctly
+                                                                                                      6              30.35            1.84            0.58              67.23      determined.
+                                                                                                                                                                                      A higher robustness of the lost-in-space algorithm allows the use of
+                                                                                                                                                                                   star trackers in hostile environments. Furthermore, the increased
+                                                                                                       Table 3       Decision criterion separation in case of positional error     robustness on a software level reduces the cost to improve robustness
+                                                                                                    Arcseconds (1σ) distortion         C∕P         C∕R         W∕P       W∕R
+                                                                                                                                                                                   on a hardware level, such as the cost to make the star tracker image
+                                                                                                                                                                                   sensor radiation hardened. This will allow smaller satellite missions
+                                                                                                    100                               100           0          0          0
+                                                                                                                                                                                   with a lower budget to benefit from the pointing accuracy of the star
+                                                                                                    500                                99.85        0.12       0          0.03
+                                                                                                    1000                               78.66       20.11       0.02       1.21     tracker. This algorithm can thus extend the range of missions in which
+                                                                                                    1500                               10.49       71.31       0.14      18.06     a star tracker can be used and will help make space missions more
+                                                                                                    2000                                0.25       45.85       0.02      53.88     affordable for smaller institutions.
+
+
+                                                                                                           Table 4     Decision criterion separation in case of false stars
+                                                                                                                                                                                                                     References
+                                                                                                                                                                                       [1] Wertz, J. R., and Larson, W. J., Space Mission Analysis and Design,
+                                                                                                      Number of false stars         C∕P         C∕R          W∕P        W∕R                3rd ed., Microcosm Press, Hawthorne, CA, Springer, New York, NY,
+                                                                                                      100                          100           0            0          0                 1999, p. 322.
+                                                                                                      300                          100           0            0          0             [2] Spratling, B., and Mortari, D., “A Survey on Star Identification
+                                                                                                      500                           98.37        0            1.63       0                 Algorithms,” Algorithms, Vol. 2, No. 1, 2009, pp. 93–107.
+                                                                                                      800                           87.42        0           12.58       0                 doi:10.3390/a2010093
+                                                                                                      1200                          54.30        0           45.70       0             [3] Sasaki, T., “A Star Identification Method for Satellite Attitude
+                                                                                                                                                                                           Determination Using Star Sensors,” 15th International Symposium on
+                                                                                                                                                                                           Space Technology and Sciences, AGNE Publishing, Inc., Tokyo, Japan,
+                                                                                                                                                                                           May 1986, pp. 1125–1130.
+                                                                                                                 Table 5     Decision criterion separation in case of                  [4] Liebe, C., “Pattern Recognition of Star Constellations for Spacecraft
+                                                                                                                                 bright false stars                                        Applications,” IEEE Aerospace and Electronic Systems Magazine,
+                                                                                                                                                                                           Vol. 8, No. 1, 1993, pp. 31–39.
+                                                                                                            Number of bright false stars C∕P C∕R W∕P W∕R                                   doi:10.1109/62.180383
+                                                                                                            1                            99.95 0.03 0.01  0.01                         [5] Anderson, D., “Autonomous Star Sensing and Pattern Recognition for
+                                                                                                            2                            99.25 0.24 0.11  0.40                             Spacecraft Attitude Determination,” Ph.D. Thesis, Texas A&M Univ.,
+                                                                                                            3                            86.74 2.43 0.97  9.86                             College Station, TX, 1991.
+                                                                                                            4                             3.37 1.51 6.36 88.76                         [6] Scholl, M. S., “Star-Field Identification for Autonomous Attitude
+                                                                                                                                                                                           Determination,” Journal of Guidance, Control, and Dynamics, Vol. 18,
+                                                                                                   484                                                          DELABIE, DURT, AND VANDERSTEEN
+
+
+                                                                                                        No. 1, 1995, pp. 61–65.                                                     [16] Landi, A., Buerni, M., and Procopio, D., “Star Trackers for
+                                                                                                        doi:10.2514/3.56657                                                              Accurate Pointing and Attitude Determination—In-Flight Results of
+                                                                                                    [7] Guangjun, Z., Wei, X., and Jiang, J., “Full-Sky Autonomous Star                  High-Accuracy Star Trackers of ISO and SAX—New Development
+                                                                                                        Identification Based on Radial and Cyclic Features of Star Pattern,”             Towards Navigation Autonomy,” Proceedings of the 3rd ESA
+                                                                                                        Image and Vision Computing, Vol. 26, No. 7, 2008, pp. 891–897.                   International Conference, European Space Research and Technology
+                                                                                                        doi:10.1016/j.imavis.2007.10.006                                                 Centre, Noordwijk, The Netherlands, Nov. 1997, p. 621.
+                                                                                                    [8] Hong, J., and Dickerson, J. A., “Neural-Network-Based Autonomous            [17] Quine, B. M., “Determining Star-Image Location: A New Sub-Pixel
+                                                                                                        Star Identification Algorithm,” Journal of Guidance, Control, and                Interpolation Technique to Process Image Centroids,” Computer
+                                                                                                        Dynamics, Vol. 23, No. 4, 2000, pp. 728–735.                                     Physics Communications, Vol. 177, No. 9, 2007, pp. 700–706.
+                                                                                                        doi:10.2514/2.4589                                                               doi:10.1016/j.cpc.2007.06.007
+                                                                                                    [9] Alvelda, P., and San Martin, A. M., “Advances in Neural Information         [18] Mortari, D., Samaan, M. A., Bruccoleri, C., and Junkins, J. L., “The
+                                                                                                        Processing Systems 1,” NIPS, Neural Network Star Pattern Recognition             Pyramid Star Identification Technique,” Navigation, Vol. 51, No. 3,
+                                                                                                        for Spacecraft Attitude Determination and Control, edited by Touretzky,          2004, pp. 171–183.
+                                                                                                        D. S., Morgan Kaufmann Publishers Inc., San Francisco, CA, 1989,            [19] Rousseau, G. L. A., Bostel, J., and Mazari, B., “New Star Pattern
+                                                                                                        pp. 314–322.                                                                     Recognition Algorithm for APS Star Tracker Application: Oriented
+                                                                                                   [10] Fabbri, R., Costa, L. D. F., Torelli, J. C., and Bruno, O. M., “2D               triangles,” IEEE Aerospace and Electronic Systems Magazine, Vol. 20,
+                                                                                                        Euclidean Distance Transform Algorithms: A Comparative Survey,”                  No. 2, 2005, pp. 27–31.
+                                                                                                        ACM Computing Surveys, Vol. 40, No. 1, 2008, pp. 2:1–2:44.                       doi:10.1109/MAES.2005.1397146
+                                                                                                        doi:10.1145/1322432                                                         [20] Janesick, J. R., Scientific Charge-Coupled Devices, SPIE — The
+                                                                                                   [11] Maurer, C., Qi, R., and Raghavan, V., “A Linear Time Algorithm for               International Society for Optical Engineering, Bellingham, WA, 2001,
+                                                                                                        Computing Exact Euclidean Distance Transforms of Binary Images in                pp. 605–680.
+                                                                                                        Arbitrary Dimensions,” IEEE Transactions on Pattern Analysis and            [21] Shara, M. M., and Johnston, M. D., “Artificial Earth Satellites Crossing
+                                                                                                        Machine Intelligence, Vol. 25, No. 2, 2003, pp. 265–270.                         the Fields of View of, and Colliding With, Orbiting Space Telescopes,”
+Downloaded by Purdue University on October 29, 2026 | http://arc.aiaa.org | DOI: 10.2514/1.56860
+
+
+
+
+                                                                                                        doi:10.1109/TPAMI.2003.1177156                                                   Publications of the Astronomical Society of the Pacific, Vol. 98, No. 606,
+                                                                                                   [12] ESA, “The Hipparcos and Tycho Catalogues,” ESA SP-1200, 1997.                    1986, pp. 814–820.
+                                                                                                   [13] Thomson, J. J., “On the Structure of the Atom: An Investigation                  doi:10.1086/131830
+                                                                                                        of the Stability and Periods of Oscillation of a Number of Corpuscles       [22] Klotz, I., “Space Junk Reaching ‘Tipping Point,’ Report Warns,”
+                                                                                                        Arranged at Equal Intervals Around the Circumference of a Circle; with           Reuters [online journal], Sept. 2011, http://www.reuters.com/
+                                                                                                        Application of the Results to the Theory of Atomic Structure,”                   article/2011/09/01/us-space-debris-idUSTRE7805VY20110901, [re-
+                                                                                                        Philosophical Magazine Series 6, Vol. 7, No. 39, 1904, pp. 237–265.              trieved 27 April 2012].
+                                                                                                        doi:10.1080/14786440409463107                                               [23] Perelman, Y., Astronomy for Entertainment, University Press of the
+                                                                                                   [14] Leopardi, P., “Distributing points on the Sphere: Partitions, Separation,        Pacific, Honolulu, HI, 2000, p. 146.
+                                                                                                        Quadrature and Energy,” Ph.D. Thesis, The University of New South           [24] Shucker, B., “Ground-Based Prototype of CMOS Navigational Star
+                                                                                                        Wales School of Mathematics and Statistics, 2006.                                Camera for Small Satellite Applications,” 15th AIAA/USU Conference
+                                                                                                   [15] Li, C. L. K, Zhang Longyun, J. S., and Jifeng, Z., “Star Pattern                 on Small Satellites, Utah State Univ., Logan, UT, Aug. 2001; also
+                                                                                                        Recognition Method Based on Neural Network,” Chinese Science                     AIAA/USU Paper SSCO1-VII-3.
+                                                                                                        Bulletin, Vol. 48, No. 18, 2003, pp. 1927–1930.                             [25] McLean, I. S., Electronic Imaging in Astronomy: Detectors and Instru-
+                                                                                                        doi:10.1007/BF03183979                                                           mentation, 2nd ed., Praxis, Chichester, England, U.K., 2008, p. 290.
+

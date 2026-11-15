@@ -1,0 +1,21 @@
+# Build output and CMake artifacts
+build/
+bin/
+lib/
+*.o
+*.a
+*.so
+*.dylib
+compile_commands.json
+.clangd/
+.cache/
+
+# IDE / Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

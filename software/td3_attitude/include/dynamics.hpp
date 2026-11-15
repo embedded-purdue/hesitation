@@ -1,9 +1,10 @@
 /**
  * @file dynamics.hpp
- * @brief Spacecraft rigid-body rotational dynamics and RK4 numerical integration.
+ * @brief Spacecraft rigid-body rotational dynamics and RK4 numerical
+ * integration.
  *
- * Implements Euler's equations of rotational motion for an asymmetric rigid body
- * and fourth-order Runge-Kutta (RK4) time-stepping:
+ * Implements Euler's equations of rotational motion for an asymmetric rigid
+ * body and fourth-order Runge-Kutta (RK4) time-stepping:
  *
  * Euler's Equation (Elkins et al., Eq. 8):
  *   wdot = I^-1 * (M - w x (I * w))
@@ -16,8 +17,8 @@
  * @version 1.0.0
  *
  * Reference:
- *   Elkins et al., "Spacecraft Attitude Control Using Deep Reinforcement Learning,"
- *   AAS 20-475.
+ *   Elkins et al., "Spacecraft Attitude Control Using Deep Reinforcement
+ * Learning," AAS 20-475.
  */
 
 #pragma once
@@ -32,18 +33,20 @@ inline Vec3 elementwise_mul(const Vec3 &a, const Vec3 &b) {
 }
 
 /**
- * @brief Element-wise reciprocal of a 3D vector (used for diagonal inertia inverse).
+ * @brief Element-wise reciprocal of a 3D vector (used for diagonal inertia
+ * inverse).
  */
 inline Vec3 elementwise_inv(const Vec3 &a) {
   return Vec3(1.0 / a.x, 1.0 / a.y, 1.0 / a.z);
 }
 
 /**
- * @brief Spacecraft physical state consisting of angular velocity and attitude quaternion.
+ * @brief Spacecraft physical state consisting of angular velocity and attitude
+ * quaternion.
  */
 struct State {
-  Vec3 w;  ///< Angular velocity vector in principal body frame [rad/s].
-  Quat q;  ///< Attitude unit quaternion relative to target reference frame.
+  Vec3 w; ///< Angular velocity vector in principal body frame [rad/s].
+  Quat q; ///< Attitude unit quaternion relative to target reference frame.
 
   State operator+(const State &o) const { return State{w + o.w, q + o.q}; }
   State operator*(double s) const { return State{w * s, q * s}; }
@@ -53,12 +56,13 @@ struct State {
  * @brief Time derivatives of the spacecraft physical state (wdot, qdot).
  */
 struct Derivative {
-  Vec3 wdot;  ///< Angular acceleration vector [rad/s^2].
-  Quat qdot;  ///< Quaternion time derivative.
+  Vec3 wdot; ///< Angular acceleration vector [rad/s^2].
+  Quat qdot; ///< Quaternion time derivative.
 };
 
 /**
- * @brief Computes the state time derivatives from Euler's rotational equations and kinematics.
+ * @brief Computes the state time derivatives from Euler's rotational equations
+ * and kinematics.
  *
  * Evaluates:
  *   wdot = I^-1 * (M - w x (I * w))      (Elkins et al., Eq. 8)
@@ -68,7 +72,8 @@ struct Derivative {
  * @param q     Current attitude quaternion.
  * @param M     Applied control torque vector [Nm].
  * @param I     Principal moments of inertia vector [kg*m^2].
- * @param I_inv Precomputed elementwise reciprocal of principal moments of inertia [1/(kg*m^2)].
+ * @param I_inv Precomputed elementwise reciprocal of principal moments of
+ * inertia [1/(kg*m^2)].
  * @return Derivative Combined time derivatives {wdot, qdot}.
  */
 inline Derivative state_derivative(const Vec3 &w, const Quat &q, const Vec3 &M,
@@ -80,17 +85,21 @@ inline Derivative state_derivative(const Vec3 &w, const Quat &q, const Vec3 &M,
 }
 
 /**
- * @brief Performs one step of 4th-order Runge-Kutta (RK4) numerical integration.
+ * @brief Performs one step of 4th-order Runge-Kutta (RK4) numerical
+ * integration.
  *
  * Integrates the coupled nonlinear rigid-body equations forward by timestep dt,
- * renormalizing the attitude quaternion at the end of the step to prevent numerical drift.
+ * renormalizing the attitude quaternion at the end of the step to prevent
+ * numerical drift.
  *
  * @param s     Initial spacecraft state at time t.
  * @param M     Constant control torque applied over interval dt [Nm].
  * @param dt    Integration timestep [s] (nominal DT = 1/240 s).
  * @param I     Principal moments of inertia vector [kg*m^2].
- * @param I_inv Elementwise inverse of principal moments of inertia [1/(kg*m^2)].
- * @return State Integrated spacecraft state at time t + dt (quaternion normalized).
+ * @param I_inv Elementwise inverse of principal moments of inertia
+ * [1/(kg*m^2)].
+ * @return State Integrated spacecraft state at time t + dt (quaternion
+ * normalized).
  */
 inline State rk4_step(const State &s, const Vec3 &M, double dt, const Vec3 &I,
                       const Vec3 &I_inv) {
