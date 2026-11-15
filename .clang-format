@@ -1,0 +1,35 @@
+BasedOnStyle: Microsoft
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+ColumnLimit: 100
+
+BreakBeforeBraces: Attach
+
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+SpaceBeforeParens: ControlStatements
+
+NamespaceIndentation: None
+
+SortIncludes: Never
+IncludeBlocks: Preserve
+
+DerivePointerAlignment: false
+
+# Keep declarations and assignments readable.
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: false
+
+# Keep constructor initializer lists readable.
+ConstructorInitializerIndentWidth: 4
+PackConstructorInitializers: BinPack
+
+# Use braces consistently for control flow.
+InsertBraces: false

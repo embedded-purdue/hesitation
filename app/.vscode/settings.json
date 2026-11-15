@@ -1,0 +1,6 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "xaver.clang-format",
+  "clang-format.style": "file",
+  "cmake.buildDirectory": "${workspaceFolder}/build"
+}

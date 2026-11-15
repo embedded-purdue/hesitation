@@ -1,0 +1,1 @@
+Hello, my name is Noah Desserich, and I am a junior in electrical engineering. I am super interested in FPGA/ASIC design. I play trombone in the Purdue "All-American" Marching Band as well as Boiler Brass. I like to play video games in my free time. [My LinkedIn](www.linkedin.com/in/noah-desserich)
