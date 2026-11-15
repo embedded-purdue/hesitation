@@ -6,6 +6,11 @@ module top (
     output ACC_CSN, // spi neg chip select
 );
 
+    // Sensor Data Outputs
+    logic [15:0] acc_x;
+    logic [15:0] acc_y;
+    logic [15:0] acc_z;
+
 // Clock module
 
 // Master module
