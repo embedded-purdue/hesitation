@@ -1,5 +1,5 @@
 #pragma once
-#include "../working_fluid.h"
+#include "working_fluid.h"
 
 struct PMAD_Input{
     double p_gen = 0.00; // Power Generated (W)

@@ -1,47 +1,27 @@
-
 #include <iostream>
 #include "cte1.h"
 #include "cte2.h"
+#include "cte3.h"
+#include "cte4.h"
 
 int main() {
-    // Shared working fluid
-    WorkingFluid fluid;
-    fluid.m_flow = 100.0;
-    fluid.cp = 520.0;
+    WorkingFluid fluid = {
+        100, // Mass flow rate of coolant
+        1000 // Inlet temperatue (K)
+    };
 
-    // CTE1 inputs
-    ReactorInput reactorInput;
-    reactorInput.p_th_cmd = 16e6;
-    reactorInput.t_in = 1000.0;
+    ReactorInput input_r = {
+        16e6, // Requested Power (W)
+        fluid.temp
+    };
 
-    // Run reactor
-    ReactorOutput reactor =
-        simulateReactor(reactorInput, fluid);
+    ReactorOutput output_r = simulateReactor(input_r, fluid);
 
-    // CTE2 inputs
-    BraytonInput braytonInput;
-    braytonInput.p_th = reactor.p_th;
-    braytonInput.t_out_1 = reactor.t_out_1;
-    braytonInput.t_out_5 = 400.0;
+    BraytonInput input_b = {
+        output_r.p_th,
+        fluid.temp,
+        fluid.temp
+    };
 
-    // Run Brayton cycle
-    BraytonOutput brayton =
-        simulateBrayton(braytonInput, fluid);
-
-    std::cout << "Thermal Power: "
-              << reactor.p_th << " W\n";
-
-    std::cout << "Reactor Outlet: "
-              << reactor.t_out_1 << " K\n";
-
-    std::cout << "Electrical Power: "
-              << brayton.p_gen << " W\n";
-
-    std::cout << "Waste Heat: "
-              << brayton.p_waste_1 << " W\n";
-
-    std::cout << "Cooler Inlet: "
-              << brayton.t_out_2 << " K\n";
-
-    return 0;
+    BraytonOutput output_b = simulateBrayton(input_b, fluid);
 }
