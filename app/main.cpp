@@ -1,5 +1,8 @@
 #include "main.h"
 
+#include "messaging/channels/environment/EnvironmentMessages.h"
+#include "messaging/channels/environment/EnvironmentChannel.h"
+
 #include <GLFW/glfw3.h>
 
 Application::Application() : m_window(nullptr) {}
@@ -48,6 +51,28 @@ bool Application::Initialize() {
         return false;
     }
 
+    // Register all known message types.
+    Hesitation::Environment::EnvironmentMessages::RegisterAll();
+
+    // Register OrbitSim listeners.
+    if (!m_orbitSim.Initialize())
+        return false;
+
+    // Start the central messaging network.
+    if (!Hesitation::Environment::EnvironmentChannel::StartHub("tcp://*:5555", "tcp://*:5556")) {
+        return false;
+    }
+
+    // Connect application modules to the network.
+    if (!Hesitation::Environment::EnvironmentChannel::Start("tcp://127.0.0.1:5555",
+                                                            "tcp://127.0.0.1:5556")) {
+        Hesitation::Environment::EnvironmentChannel::Stop();
+        return false;
+    }
+
+    // Start background tasks
+    m_orbitSim.Start();
+
     return true;
 }
 
@@ -64,6 +89,12 @@ void Application::Run() {
 }
 
 void Application::Shutdown() {
+    // Stop background tasks first
+    m_orbitSim.Stop();
+
+    // Shut down messaging channels
+    Hesitation::Environment::EnvironmentChannel::Stop();
+
     // Shut down modules before dependencies
     m_gui.Shutdown();
 

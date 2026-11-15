@@ -1,30 +1,8 @@
-cmake_minimum_required(VERSION 3.20)
-
-project(Hesitation
-    VERSION 0.0.0
-    LANGUAGES CXX C
-)
-
-# ==============================================================================
-# PROJECT CONFIGURATION
-# ==============================================================================
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Keep all executables in a predictable location.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-
-# ==============================================================================
-# DEPENDENCIES
-# ==============================================================================
-
 include(FetchContent)
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
 # GLFW
-# ------------------------------------------------------------------------------
+# ==============================================================================
 
 FetchContent_Declare(
     glfw
@@ -35,20 +13,19 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(glfw)
 
-# ------------------------------------------------------------------------------
-# Dear ImGui (with docking)
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# DEAR IMGUI
+# ==============================================================================
 
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG        v1.91.8-docking
-    GIT_SHALLOW    TRUE
+    GIT_TAG v1.91.8-docking
+    GIT_SHALLOW TRUE
 )
 
 FetchContent_MakeAvailable(imgui)
 
-# Build Dear ImGui as a static library.
 add_library(imgui_lib STATIC
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
@@ -65,10 +42,32 @@ target_include_directories(imgui_lib
         ${imgui_SOURCE_DIR}/backends
 )
 
-target_link_libraries(imgui_lib
-    PUBLIC
-        glfw
+target_link_libraries(imgui_lib PUBLIC glfw)
+
+# ==============================================================================
+# IMPLOT
+# ==============================================================================
+
+FetchContent_Declare(
+    implot
+    GIT_REPOSITORY https://github.com/epezent/implot.git
+    GIT_TAG v0.16
+    GIT_SHALLOW TRUE
 )
+
+FetchContent_MakeAvailable(implot)
+
+add_library(implot_lib STATIC
+    ${implot_SOURCE_DIR}/implot.cpp
+    ${implot_SOURCE_DIR}/implot_items.cpp
+)
+
+target_include_directories(implot_lib
+    PUBLIC
+        ${implot_SOURCE_DIR}
+)
+
+target_link_libraries(implot_lib PUBLIC imgui_lib)
 
 # ==============================================================================
 # SYSTEM DEPENDENCIES
@@ -76,63 +75,79 @@ target_link_libraries(imgui_lib
 
 find_package(OpenGL REQUIRED)
 
-# ------------------------------------------------------------------------------
-# Native File Dialog Extended (nfd)
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# NATIVE FILE DIALOG
+# ==============================================================================
 
 FetchContent_Declare(
     nfd
     GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
-    GIT_TAG        v1.2.1
-    GIT_SHALLOW    TRUE
+    GIT_TAG v1.2.1
+    GIT_SHALLOW TRUE
 )
 
 FetchContent_MakeAvailable(nfd)
 
 # ==============================================================================
-# APPLICATION
+# APPLICATION SOURCES
 # ==============================================================================
 
-file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
+file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
 )
 
-add_executable(${PROJECT_NAME}
-    "${CMAKE_CURRENT_SOURCE_DIR}/../main.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../main.h"
-    ${PROJECT_SOURCES}
+list(FILTER APP_SOURCES EXCLUDE REGEX "/python/")
+
+add_executable(nep_controls
+    "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/main.h"
+    ${APP_SOURCES}
 )
 
-target_include_directories(${PROJECT_NAME}
+# ==============================================================================
+# INCLUDE DIRECTORIES
+# ==============================================================================
+
+target_include_directories(nep_controls
     PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/.."
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        "${PROJECT_SOURCE_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 
-target_link_libraries(${PROJECT_NAME}
+# ==============================================================================
+# LINK LIBRARIES
+# ==============================================================================
+
+target_link_libraries(nep_controls
     PRIVATE
         imgui_lib
+        implot_lib
         OpenGL::GL
+        messaging
         nfd
 )
+
+# Optional engineering integrations
+if(TARGET thrust_vectoring)
+    target_link_libraries(nep_controls PRIVATE thrust_vectoring)
+endif()
 
 # ==============================================================================
 # COMPILER WARNINGS
 # ==============================================================================
 
-if (MSVC)
-    target_compile_options(${PROJECT_NAME}
-        PRIVATE
-            /W4
-            /permissive-
+if(MSVC)
+    target_compile_options(nep_controls PRIVATE
+        /W4
+        /permissive-
     )
 else()
-    target_compile_options(${PROJECT_NAME}
-        PRIVATE
-            -Wall
-            -Wextra
-            -Wpedantic
+    target_compile_options(nep_controls PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
     )
 endif()
 
@@ -141,12 +156,12 @@ endif()
 # ==============================================================================
 
 add_custom_command(
-    TARGET ${PROJECT_NAME}
+    TARGET nep_controls
     POST_BUILD
 
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_CURRENT_SOURCE_DIR}/assets"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
+        "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+        "$<TARGET_FILE_DIR:nep_controls>/app/assets"
 
     COMMENT "Copying assets..."
 )
