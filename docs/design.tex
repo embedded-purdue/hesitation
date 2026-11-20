@@ -1,0 +1,116 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb}
+
+\begin{document}
+
+\section*{Equations from Elkins, Sood \& Rumpf (AAS 20-475)}
+
+\begin{equation}
+R_t(s_t) = \sum_{k=0}^{T} \gamma^{t} r_{t+k}
+% Paper prints \gamma^{t}; the standard form is \gamma^{k}
+\end{equation}
+
+\begin{equation}
+Q^{\pi} = \hat{\mathbb{E}}\left[ R_t \mid s_t, a_t \right]
+\end{equation}
+
+\begin{equation}
+\nabla_{\theta} J(\theta) = \hat{\mathbb{E}}\left[ \nabla_{a_t} Q^{\pi}(s_t, a_t)\, \nabla_{\theta} \pi_{\theta}(s) \right]
+\end{equation}
+
+\begin{equation}
+Q^{\pi}(s_t, a_t) = r_t + \gamma\, \hat{\mathbb{E}}\left[ Q^{\pi}(s_{t+1}, a_{t+1}) \right]
+\end{equation}
+
+\begin{equation}
+y = r_t + \gamma\, Q_{\psi'}(s_{t+1}, a_{t+1})
+\end{equation}
+
+\begin{equation}
+\psi' \longleftarrow \tau \psi + (1 - \tau)\psi'
+\end{equation}
+
+\begin{equation}
+\mathbf{I} \equiv \operatorname{diag}(I_1, I_2, I_3) = \operatorname{diag}(0.872,\, 0.115,\, 0.797)\ \text{kg m}^2
+\end{equation}
+
+\begin{equation}
+\vec{M} = \mathbf{I}\dot{\vec{\omega}} + \boldsymbol{\omega}^{\times}\mathbf{I}\vec{\omega}
+\end{equation}
+
+\begin{equation}
+\boldsymbol{\omega}^{\times} =
+\begin{bmatrix}
+0 & -\omega_3 & \omega_2 \\
+\omega_3 & 0 & -\omega_1 \\
+-\omega_2 & \omega_1 & 0
+\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+\mathbf{q}_e =
+\begin{bmatrix} \hat{e}\sin(\phi/2) \\ \cos(\phi/2) \end{bmatrix}
+=
+\begin{bmatrix} \vec{q} \\ q_s \end{bmatrix}
+\end{equation}
+
+\begin{equation}
+\dot{\mathbf{q}}_e = \frac{1}{2}\boldsymbol{\Omega}(\vec{\omega})\,\mathbf{q}_e
+\end{equation}
+
+\begin{equation}
+\boldsymbol{\Omega}(\vec{\omega}) =
+\begin{bmatrix}
+-\boldsymbol{\omega}^{\times} & \vec{\omega} \\
+-\vec{\omega}^{T} & 0
+\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+s_t = \left\{ \mathbf{q}_e,\ \dot{\mathbf{q}}_e,\ \vec{\omega} \right\}
+\end{equation}
+
+\begin{equation}
+r_t =
+\begin{cases}
+0.1 & q_{s,t} > q_{s,t-1} \\
+-0.1 & \text{otherwise}
+\end{cases}
+\end{equation}
+
+\begin{equation}
+r_t = \boldsymbol{\alpha} \cdot \mathbf{q}_e =
+\begin{bmatrix} -1 \\ -1 \\ -1 \\ 1 \end{bmatrix}
+\cdot
+\begin{bmatrix} q_1^2 \\ q_2^2 \\ q_3^2 \\ q_s^2 \end{bmatrix}
+\end{equation}
+
+\begin{equation}
+\vec{\tau}_{dist} = 0.05
+\begin{bmatrix} I_3 - I_2 \\ I_1 - I_3 \\ I_2 - I_1 \end{bmatrix}
+=
+\begin{bmatrix} 0.0341 \\ 0.0038 \\ -0.0379 \end{bmatrix}\ \text{Nm}
+\end{equation}
+
+\section*{Related (unnumbered in the paper)}
+
+TD3 clipped double-Q target:
+\begin{equation*}
+y = r_t + \gamma \min_{i=1,2} Q_{\psi_i'}\!\left(s_{t+1},\, \pi_{\theta'}(s_{t+1}) + \epsilon\right),
+\quad \epsilon \sim \operatorname{clip}(\mathcal{N}(0,\sigma), -c, c)
+\end{equation*}
+
+Eq.~15 simplified using the unit-norm constraint:
+\begin{equation*}
+r_t = q_s^2 - (q_1^2 + q_2^2 + q_3^2) = 2q_s^2 - 1 = \cos\phi
+\end{equation*}
+
+Reward-switch threshold vs.\ angle:
+\begin{equation*}
+q_s \ge 0.999962 \;\Rightarrow\; \phi \le 2\arccos(0.999962) \approx 1.0^\circ
+\end{equation*}
+
+\end{document}
+
+
+// this is from  https://www.researchgate.net/publication/343834157_Adaptive_Continuous_Control_of_Spacecraft_Attitude_Using_Deep_Reinforcement_Learning
