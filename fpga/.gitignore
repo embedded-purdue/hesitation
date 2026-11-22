@@ -1,0 +1,7 @@
+project/
+
+*.jou
+*.log
+dfx_runtime.txt
+
+.Xil/
