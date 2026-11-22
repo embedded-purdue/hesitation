@@ -110,8 +110,7 @@ module spi_master #(
 
                         if (bit_count == WIDTH - 1) begin
                             next_rx_data  = (LSB_FIRST) ? 
-                                {miso_sample, shift_data_out[WIDTH-1:1]} : 
-                                {shift_data_out[WIDTH-2:0], miso_sample};
+                                {miso_sample, shift_data_out[WIDTH-1:1]} : {shift_data_out[WIDTH-2:0], miso_sample};
                             next_rx_valid = 1'b1;
                         end else begin
                             next_bit_count = bit_count + 1'b1;
