@@ -1,0 +1,23 @@
+{
+"working_liquid": {
+    "name": "He-Xe"
+},
+"cte1_reactor": {
+    "reactor_efficiency": 1.0,
+    "p_th_max_w": 16000000.0,
+    "t_out_1_min": 1200.0,
+    "t_out_1_max": 1400.0
+},
+"cte2_brayton": {
+    "eta_b": 0.26
+},
+"cte3_pmad": {
+    "eta_pmad": 0.99
+},
+"cte4_propulsion": {
+    "num_thrusters" : 12,
+    "eta_thruster": 0.60
+},
+"cte5_cooling": {
+}
+}
