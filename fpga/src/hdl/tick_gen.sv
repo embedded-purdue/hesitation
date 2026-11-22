@@ -4,7 +4,7 @@ module tick_gen #(
     input logic clk_in,
     input logic n_rst,
     input logic enable,
-    output logic clk_out
+    output logic tick
 );
 
     localparam int HALF_PERIOD = (DIVISOR / 2) - 1;

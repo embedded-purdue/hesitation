@@ -74,7 +74,11 @@ module spi_master #(
     always_comb begin : NEXT_STATE_LOGIC
         case (state)
             IDLE: if (start) next_state = TRANSFER;
-            TRANSFER: if (sclk_tick && sclk_int && (bit_count == WIDTH - 1)) next_state == IDLE;
+            TRANSFER: begin
+                if (sclk_tick && sclk_int && (bit_count == (WIDTH - 1))) begin
+                    next_state = IDLE;
+                end
+            end
         endcase
     end : NEXT_STATE_LOGIC
 
